@@ -1,0 +1,11 @@
+C:\Work\ReportEngine\ReportEngine\bin\Debug\ReportEngine.dll
+C:\Work\ReportEngine\ReportEngine\bin\Debug\ReportEngine.pdb
+C:\Work\ReportEngine\ReportEngine\bin\Debug\Autofac.dll
+C:\Work\ReportEngine\ReportEngine\bin\Debug\Newtonsoft.Json.dll
+C:\Work\ReportEngine\ReportEngine\bin\Debug\Autofac.xml
+C:\Work\ReportEngine\ReportEngine\bin\Debug\Newtonsoft.Json.xml
+C:\Work\ReportEngine\ReportEngine\obj\Debug\ReportEngine.csprojAssemblyReference.cache
+C:\Work\ReportEngine\ReportEngine\obj\Debug\ReportEngine.csproj.CoreCompileInputs.cache
+C:\Work\ReportEngine\ReportEngine\obj\Debug\ReportEngine.csproj.CopyComplete
+C:\Work\ReportEngine\ReportEngine\obj\Debug\ReportEngine.dll
+C:\Work\ReportEngine\ReportEngine\obj\Debug\ReportEngine.pdb
