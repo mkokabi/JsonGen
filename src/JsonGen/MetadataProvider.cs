@@ -2,8 +2,18 @@
 
 namespace JsonGen
 {
-    public abstract class MetadataProvider : IMetadataProvider
+    public class BasicMetadataProvider : IMetadataProvider
     {
-        public abstract Metadata GetMetadata(string name);
+        private readonly Func<string, Metadata> metadata;
+
+        public BasicMetadataProvider(Func<string, Metadata> metadata)
+        {
+            this.metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
+        }
+
+        public Metadata GetMetadata(string name)
+        {
+            return metadata(name);
+        }
     }
 }

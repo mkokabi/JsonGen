@@ -8,15 +8,10 @@ namespace JsonGenTestProject
     [TestClass]
     public class SimplestForm
     {
-        public class MyMetadataProvider : MetadataProvider
-        {
-            private readonly string layout;
 
-            public override Metadata GetMetadata(string metadataName)
+        BasicMetadataProvider metadataProvider = new BasicMetadataProvider(name => new Metadata
             {
-                return new Metadata
-                {
-                    DataSources = new[]
+                DataSources = new[]
                         {
                             new DataSource {
                                 Key = "W",
@@ -24,11 +19,10 @@ namespace JsonGenTestProject
                                 DataProviderFullName = typeof(DataProvider).FullName
                             }
                         },
-                    Labels = new Labels { },
-                    Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
-                };
+                Labels = new Labels { },
+                Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
             }
-        }
+        );
 
         public class DataProvider : IDataProvider
         {
@@ -41,7 +35,6 @@ namespace JsonGenTestProject
         [TestMethod]
         public void Simple_Test()
         {
-            var metadataProvider = new MyMetadataProvider();
 
             var generator = new Generator(metadataProvider);
             var generatedJson = generator.Generate("SomeMetadata");
