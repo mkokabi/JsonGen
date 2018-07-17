@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using JsonGen;
 
-namespace ReportEngineTestProject
+namespace JsonGenTestProject
 {
     [TestClass]
     public class TestModels

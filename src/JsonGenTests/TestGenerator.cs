@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using Report.ViewModels;
 
-namespace ReportEngineTestProject
+namespace JsonGenTestProject
 {
     [TestClass]
     public class TestGenerator

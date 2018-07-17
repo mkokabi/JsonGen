@@ -2,11 +2,8 @@
 
 namespace JsonGen
 {
-    public class MetadataProvider : IMetadataProvider
+    public abstract class MetadataProvider : IMetadataProvider
     {
-        public Metadata GetMetadata(string reportName)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract Metadata GetMetadata(string name);
     }
 }

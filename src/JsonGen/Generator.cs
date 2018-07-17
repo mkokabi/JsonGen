@@ -16,9 +16,9 @@ namespace JsonGen
 
         private const string dataSourceNode = "_dataSource";
 
-        public string Generate(string reportName)
+        public string Generate(string metadataName)
         {
-            var metadata = metadataProvider.GetMetadata(reportName);
+            var metadata = metadataProvider.GetMetadata(metadataName);
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
