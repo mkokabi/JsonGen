@@ -1,0 +1,24 @@
+﻿{
+  "Content": "{
+    'parent': {
+      'child': {
+        '_dataSource': 'A',
+        'data': [
+          {
+            'x': '@x',
+            'y': '@y',
+            'z': '@z'
+          }
+        ]
+      },
+      '_dataSource': 'B',
+      'data': [
+        {
+          'xp': '@x',
+          'yp': '@y',
+          'zp': '@z'
+        }
+      ]
+    }
+  }"
+}
