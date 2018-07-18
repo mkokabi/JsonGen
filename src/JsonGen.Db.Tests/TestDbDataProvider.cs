@@ -1,5 +1,6 @@
 using Dapper;
 using FluentAssertions;
+using Microsoft.CSharp;
 using Moq;
 using Moq.Dapper;
 using System.Data;
@@ -45,7 +46,7 @@ namespace JsonGen.Db.Tests
                 .And.HaveCount(2);
             actualData.ToList().ForEach(row =>
             {
-               // data.Where(d => d.Id == row.Id).Should().HaveCount(1);
+                data.Where(d => d.Id == row.Id).Should().HaveCount(1);
             });
         }
     }
