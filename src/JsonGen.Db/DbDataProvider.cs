@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Linq;
 
 namespace JsonGen.Db
 {
-    public class DbDataProvider : IDataProvider
+    public class DbDataProvider : IFilterableDataProvider
     {
         private readonly IDbConnection dbConnection;
         private readonly string query;
@@ -24,6 +24,11 @@ namespace JsonGen.Db
         public IEnumerable<dynamic> GetData()
         {
             return dbConnection.Query(this.query);
+        }
+
+        public IEnumerable<dynamic> GetData(Func<dynamic, bool> predicate)
+        {
+            return dbConnection.Query(this.query).Where(predicate);
         }
     }
 }

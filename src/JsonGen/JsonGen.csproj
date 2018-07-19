@@ -49,12 +49,13 @@
     <Compile Include="Generator.cs" />
     <Compile Include="DataSource.cs" />
     <Compile Include="IDataProvider.cs" />
+    <Compile Include="IFilterableDataProvider.cs" />
     <Compile Include="IGenerator.cs" />
     <Compile Include="IMetadataProvider.cs" />
     <Compile Include="Labels.cs" />
     <Compile Include="Layout.cs" />
     <Compile Include="Metadata.cs" />
-    <Compile Include="MetadataProvider.cs" />
+    <Compile Include="BasicMetadataProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportModule.cs" />
   </ItemGroup>
