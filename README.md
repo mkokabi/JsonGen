@@ -18,7 +18,6 @@ Let's start with the simplest form:
                         {
                             new DataSource {
                                 Key = "W",
-                                Fields = new[] { "field1", "field2" },
                                 DataProviderFullName = typeof(DataProvider).FullName
                             }
                         },

@@ -152,20 +152,6 @@ namespace JsonGenTestProject
         public void Generator_should_replace_data()
         {
             // Arrange
-            DataSource dataSourceA = new DataSource
-            {
-                Key = "A",
-                Fields = new[] { "x", "y", "z" },
-                DataProviderFullName = typeof(DataProviderA).FullName
-            };
-
-            DataSource dataSourceB = new DataSource
-            {
-                Key = "B",
-                Fields = new[] { "xp", "yp", "zp" },
-                DataProviderFullName = typeof(DataProviderB).FullName
-            };
-
             var layoutString = File.ReadAllText("Jsons\\Test1-Layout.json");
             var layout = JsonConvert.DeserializeObject<JsonGen.Layout>(layoutString);
             var metadata = new Metadata
@@ -176,13 +162,11 @@ namespace JsonGenTestProject
                     new DataSource
                     {
                         Key = "A",
-                        Fields = new[] {"x", "y", "z" },
                         DataProviderFullName = typeof(DataProviderA).FullName
                     },
                     new DataSource
                     {
                         Key = "B",
-                        Fields = new[] {"xp", "yp", "zp" },
                         DataProviderFullName = typeof(DataProviderB).FullName
                     }
                 }

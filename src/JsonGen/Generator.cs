@@ -16,7 +16,7 @@ namespace JsonGen
 
         private const string dataSourceNode = "_dataSource";
 
-        public string Generate(string metadataName)
+        public string Generate(string metadataName, Func<dynamic, bool> predicate = null)
         {
             var metadata = metadataProvider.GetMetadata(metadataName);
             var layout = metadata.Layout;
@@ -36,7 +36,7 @@ namespace JsonGen
                                         .First(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
                                         .Equals(dataSourceNode, StringComparison.InvariantCultureIgnoreCase))
                                         as JProperty).Value.ToString();
-                
+
                 var vs = dataToken.Values();
 
                 var fields = new Dictionary<string, string>();
@@ -51,21 +51,48 @@ namespace JsonGen
                 }
 
                 (dataToken as JArray).RemoveAll();
-                var dataProvider = GetDataProvider(dataSource.DataProviderFullName);
-                if (dataProvider == null)
+                var dataProviderType = GetDataProviderType(dataSource.DataProviderFullName);
+                if (dataProviderType == null)
                 {
                     continue;
                 }
 
-                dataProvider.ToList().ForEach(row =>
+                IEnumerable<dynamic> data = null;
+
+                if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    (dataToken as JArray).Add(JObject.FromObject(row));
+                    var filterableDataProvider =
+                        (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
+
+                    data = filterableDataProvider.GetData(predicate);
+                }
+                else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
+                {
+                    var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
+
+                    data = dataProvider.GetData();
+                }
+                data?.ToList().ForEach(row =>
+                {
+                    if (fields.Any())
+                    {
+                        var newRow = new JObject();
+                        fields.Keys.ToList().ForEach(key =>
+                        {
+                            newRow.Add(key, row.GetType().GetProperty(key)?.GetValue(row, null));
+                        });
+                        (dataToken as JArray).Add(JObject.FromObject(newRow));
+                    }
+                    else
+                    {
+                        (dataToken as JArray).Add(JObject.FromObject(row));
+                    }
                 });
             }
             return jLayout.ToString();
         }
 
-        private IEnumerable<dynamic> GetDataProvider(string dataProviderFullName)
+        private Type GetDataProviderType(string dataProviderFullName)
         {
             var dataProviderType = 
                 AppDomain.CurrentDomain
@@ -89,8 +116,7 @@ namespace JsonGen
                 return null;
             }
 
-            IDataProvider dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
-            return dataProvider.GetData();
+            return dataProviderType;
         }
     }
 }

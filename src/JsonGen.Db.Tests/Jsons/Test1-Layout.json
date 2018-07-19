@@ -1,0 +1,21 @@
+﻿{
+  "nodeA": {
+    "_dataSource": "A",
+    "someDataFromA": [
+      {
+        "x": 1,
+        "y": 2,
+        "z": 3
+      }
+    ]
+  },
+  "nodeB": {
+    "_dataSource": "B",
+    "someDataFromB": [
+      {
+        "xp": "@x",
+        "yp": "@y"
+      }
+    ]
+  }
+}

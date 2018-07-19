@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using JsonGen;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
 
 namespace JsonGenTestProject
 {
@@ -14,7 +15,6 @@ namespace JsonGenTestProject
                         {
                             new DataSource {
                                 Key = "W",
-                                Fields = new[] { "field1", "field2" },
                                 DataProviderFullName = typeof(DataProvider).FullName
                             }
                         },
@@ -38,15 +38,15 @@ namespace JsonGenTestProject
             var generator = new Generator(metadataProvider);
             var generatedJson = generator.Generate("SomeMetadata");
             var expected = @"{
-  ""_dataSource"": ""W"",
-  ""data"": [
+  '_dataSource': 'W',
+  'data': [
     {
-      ""field1"": ""Hello"",
-      ""field2"": ""World""
+      'field1': 'Hello',
+      'field2': 'World'
     }
   ]
 }";
-            Assert.AreEqual(expected, generatedJson);
+            Assert.IsTrue(JToken.DeepEquals(JObject.Parse(expected), JObject.Parse(generatedJson)));
         }
     }
 }
