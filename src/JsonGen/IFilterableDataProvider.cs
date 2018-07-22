@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace JsonGen
 {
     public interface IFilterableDataProvider : IDataProvider
     {
-        IEnumerable<dynamic> GetData(Func<dynamic, bool> predicate);
+        Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate);
     }
 }

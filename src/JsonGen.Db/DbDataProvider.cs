@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace JsonGen.Db
 {
@@ -21,14 +22,15 @@ namespace JsonGen.Db
             this.query = query;
         }
 
-        public IEnumerable<dynamic> GetData()
+        public async Task<IEnumerable<dynamic>> GetDataAsync()
         {
-            return dbConnection.Query(this.query);
+            return await dbConnection.QueryAsync(this.query);
         }
 
-        public IEnumerable<dynamic> GetData(Func<dynamic, bool> predicate)
+        public async Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate)
         {
-            return dbConnection.Query(this.query).Where(predicate);
+            var query = await dbConnection.QueryAsync(this.query);
+            return query.Where(predicate);
         }
     }
 }

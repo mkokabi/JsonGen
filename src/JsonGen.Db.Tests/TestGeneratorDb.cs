@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,17 +23,17 @@ namespace JsonGen.Db.Tests
 
         public class DbDataProvider : IFilterableDataProvider
         {
-            public IEnumerable<dynamic> GetData(Func<dynamic, bool> predicate)
+            public async Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate)
             {
-                return GetData().ToList().Where(predicate);
+                return (await GetDataAsync()).ToList().Where(predicate);
             }
 
-            public IEnumerable<dynamic> GetData() => new[]
+            public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult(new[]
             {
                 new { x = 10, y = 20, z = 30, xp = 110, yp = 210, zp = 310 },
                 new { x = 11, y = 21, z = 31, xp = 111, yp = 211, zp = 311 },
                 new { x = 12, y = 22, z = 32, xp = 112, yp = 212, zp = 312 },
-            };
+            });
         }
 
         [Fact]

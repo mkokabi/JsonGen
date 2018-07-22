@@ -5,6 +5,7 @@ using Moq;
 using Moq.Dapper;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace JsonGen.Db.Tests
@@ -33,15 +34,15 @@ namespace JsonGen.Db.Tests
         };
 
         [Fact]
-        public void DbDataProvider_should_return_data()
+        public async Task DbDataProvider_should_return_data()
         {
             var connection = new Mock<IDbConnection>();
             
-            connection.SetupDapper(c => c.Query<DataType>(It.IsAny<string>(), null, null, true, null, null))
-                      .Returns(data);
+            connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
+                      .ReturnsAsync(data);
 
             var myDataProvider = new DbDataProvider(connection.Object, "MyStoreProc");
-            var actualData = myDataProvider.GetData();
+            var actualData = await myDataProvider.GetDataAsync();
             actualData.Should().NotBeNullOrEmpty()
                 .And.HaveCount(2);
             actualData.ToList().ForEach(row =>
@@ -51,15 +52,15 @@ namespace JsonGen.Db.Tests
         }
 
         [Fact]
-        public void DbDataProvider_should_filter_data()
+        public async Task DbDataProvider_should_filter_data()
         {
             var connection = new Mock<IDbConnection>();
 
-            connection.SetupDapper(c => c.Query<DataType>(It.IsAny<string>(), null, null, true, null, null))
-                      .Returns(data);
+            connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
+                      .ReturnsAsync(data);
 
             var myDataProvider = new DbDataProvider(connection.Object, "MyStoreProc");
-            var actualData = myDataProvider.GetData(row => row.Id == 1000);
+            var actualData = await myDataProvider.GetDataAsync(row => row.Id == 1000);
             actualData.Should().NotBeNullOrEmpty()
                 .And.HaveCount(1);
             actualData.ToList().ForEach(row =>

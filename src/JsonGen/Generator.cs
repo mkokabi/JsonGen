@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace JsonGen
 {
@@ -15,10 +16,26 @@ namespace JsonGen
         }
 
         private const string dataSourceNode = "_dataSource";
-
+        
         public string Generate(string metadataName, Func<dynamic, bool> predicate = null)
         {
+            try
+            {
+                return GenerateAsync(metadataName, predicate).Result;
+            }
+            catch (AggregateException e) when (e.InnerExceptions.FirstOrDefault().GetType()== typeof(GenerateException))
+            {
+                throw e.InnerException;
+            }
+        }
+
+        public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null)
+        {
             var metadata = metadataProvider.GetMetadata(metadataName);
+            if (metadata == null)
+            {
+                throw new GenerateException("Metadata provider return null.");
+            }
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
@@ -64,13 +81,13 @@ namespace JsonGen
                     var filterableDataProvider =
                         (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
 
-                    data = filterableDataProvider.GetData(predicate);
+                    data = await filterableDataProvider.GetDataAsync(predicate);
                 }
                 else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
                 {
                     var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
 
-                    data = dataProvider.GetData();
+                    data = await dataProvider.GetDataAsync();
                 }
                 data?.ToList().ForEach(row =>
                 {

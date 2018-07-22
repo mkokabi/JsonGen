@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace JsonGen
 {
     public interface IDataProvider
     {
-        IEnumerable<dynamic> GetData();
+        Task<IEnumerable<dynamic>> GetDataAsync();
     }
 }

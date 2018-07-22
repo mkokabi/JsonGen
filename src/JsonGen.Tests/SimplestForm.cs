@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using JsonGen;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
@@ -25,10 +26,10 @@ namespace JsonGenTestProject
 
         public class DataProvider : IDataProvider
         {
-            public IEnumerable<dynamic> GetData() => new[]
+            public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult(new[]
             {
                 new { field1 ="Hello",  field2 = "World" }
-            };
+            });
         }
 
         [TestMethod]

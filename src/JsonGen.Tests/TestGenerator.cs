@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using Report.ViewModels;
+using System.Threading.Tasks;
 
 namespace JsonGenTestProject
 {
@@ -134,18 +135,18 @@ namespace JsonGenTestProject
 
         public class DataProviderA : IDataProvider
         {
-            public IEnumerable<dynamic> GetData() => new[]
+            public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult(new[]
             {
                 new { x = 1, y = 2, z = 3 }
-            };
+            });
         }
 
         public class DataProviderB : IDataProvider
         {
-            public IEnumerable<dynamic> GetData() => new[]
+            public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult(new[]
             {
                 new { x = 10, y = 20, z = 30 }
-            };
+            });
         }
 
         [TestMethod]
@@ -190,6 +191,18 @@ namespace JsonGenTestProject
             reportModel?.Parent?.Data[0].X.Should().Be(10);
             reportModel?.Parent?.Data[0].Y.Should().Be(20);
             reportModel?.Parent?.Data[0].Z.Should().Be(30);
+        }
+
+        [TestMethod]
+        public async Task Generator_should_throw_if_metadataprovider_return_metadata_null()
+        {
+            // Arrange
+            var metadataProvider = new Mock<IMetadataProvider>();
+            metadataProvider.Setup(mdp => mdp.GetMetadata(It.IsAny<string>())).Returns<Metadata>(null);
+            var generator = new Generator(metadataProvider.Object);
+
+            // Action + Assertion
+            generator.Invoking(g => g.Generate(It.IsAny<string>())).Should().Throw<GenerateException>();
         }
     }
 }
