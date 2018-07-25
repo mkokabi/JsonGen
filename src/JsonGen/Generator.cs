@@ -72,7 +72,7 @@ namespace JsonGen
                     continue;
                 }
 
-                IEnumerable<dynamic> data = await GetData(predicate, dataProviderType);
+                IEnumerable<dynamic> data = await GetData(predicate, dataProviderType, dataSource);
 
                 data?.ToList().ForEach(row =>
                 {
@@ -94,23 +94,19 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
-        private IFilterableDataProvider filterableDataProvider;
-        protected IFilterableDataProvider FilterableDataProvider
-        {
-            set
-            {
-                this.filterableDataProvider = value;
-            }
-        }
-
-        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Type dataProviderType)
+        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Type dataProviderType, DataSource dataSource)
         {
             IEnumerable<dynamic> data = null;
-            if (filterableDataProvider != null)
+
+            if (predicate != null && typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
             {
-                return await filterableDataProvider.GetDataAsync(predicate);
+                var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
+                dbDataProvider.DbConnection = dataSource.DbConnection;
+                dbDataProvider.Query = dataSource.Query;
+
+                data = await dbDataProvider.GetDataAsync(predicate);
             }
-            if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
+            else if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
             {
                 var filterableDataProvider =
                     (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);

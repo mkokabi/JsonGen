@@ -1,6 +1,5 @@
 using Dapper;
 using FluentAssertions;
-using Microsoft.CSharp;
 using Moq;
 using Moq.Dapper;
 using System.Data;
@@ -41,7 +40,7 @@ namespace JsonGen.Db.Tests
             connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
                       .ReturnsAsync(data);
 
-            var myDataProvider = new DbDataProvider(connection.Object, "MyStoreProc");
+            var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "MyQuery" };
             var actualData = await myDataProvider.GetDataAsync();
             actualData.Should().NotBeNullOrEmpty()
                 .And.HaveCount(2);
@@ -59,7 +58,7 @@ namespace JsonGen.Db.Tests
             connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
                       .ReturnsAsync(data);
 
-            var myDataProvider = new DbDataProvider(connection.Object, "MyStoreProc");
+            var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "MyStoreProc" };
             var actualData = await myDataProvider.GetDataAsync(row => row.Id == 1000);
             actualData.Should().NotBeNullOrEmpty()
                 .And.HaveCount(1);

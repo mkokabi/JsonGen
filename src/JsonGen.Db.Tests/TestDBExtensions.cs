@@ -3,10 +3,7 @@ using FluentAssertions;
 using Moq;
 using Moq.Dapper;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using Xunit;
 
 namespace JsonGen.Db.Tests
@@ -34,16 +31,22 @@ namespace JsonGen.Db.Tests
             connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
                       .ReturnsAsync(data);
 
-            var dbDataProvider = new DbDataProvider(connection.Object, "MyQuery");
+            var dbDataProvider = new DbDataProvider();
 
             var myMetadataProvider = new BasicMetadataProvider(_ => 
                 new Metadata
                 {
                     Layout = new Layout { Content = "{'_dataSource':'A', 'data':[]}" },
                     Labels = new Labels(),
-                    DataSources = new[] { new DataSource { Key = "A", DataProviderFullName = typeof(DbDataProvider).FullName } }
+                    DataSources = new[] {
+                        new DataSource {
+                            Key = "A",
+                            DataProviderFullName = typeof(DbDataProvider).FullName,
+                            DbConnection = connection.Object,
+                            Query = "MyQuery"
+                        } }
                 });
-            var jsonGenerator = new Generator(myMetadataProvider, dbDataProvider);
+            var jsonGenerator = new Generator(myMetadataProvider);
 
             var json = jsonGenerator.Generate("metadataName", data => data.Score > 100);
             json.Should().NotBeNull();

@@ -56,7 +56,7 @@ namespace JsonGen.Db.Tests
                     }
                 }
             });
-            var generator = new Generator(metadataProvider, new DbDataProvider());
+            var generator = new Generator(metadataProvider);
             var json = generator.Generate("myMeta", row => row.x < 12);
             output.WriteLine(json);
             json.Should().NotBeNull();

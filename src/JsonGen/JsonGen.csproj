@@ -47,6 +47,7 @@
     <Compile Include="Generator.cs" />
     <Compile Include="DataSource.cs" />
     <Compile Include="IDataProvider.cs" />
+    <Compile Include="IDbDataProvider.cs" />
     <Compile Include="IFilterableDataProvider.cs" />
     <Compile Include="IGenerator.cs" />
     <Compile Include="IMetadataProvider.cs" />

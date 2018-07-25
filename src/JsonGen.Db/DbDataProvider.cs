@@ -7,20 +7,13 @@ using System.Threading.Tasks;
 
 namespace JsonGen.Db
 {
-    public class DbDataProvider : IFilterableDataProvider
+    public class DbDataProvider : IDbDataProvider
     {
-        private readonly IDbConnection dbConnection;
-        private readonly string query;
+        private IDbConnection dbConnection;
+        private string query;
 
-        public DbDataProvider(IDbConnection dbConnection, string query)
-        {
-            this.dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                throw new ArgumentException("The query can not be null or white space", nameof(query));
-            }
-            this.query = query;
-        }
+        public IDbConnection DbConnection { get => dbConnection; set => dbConnection = value; }
+        public string Query { get => query; set => query = value; }
 
         public async Task<IEnumerable<dynamic>> GetDataAsync()
         {
