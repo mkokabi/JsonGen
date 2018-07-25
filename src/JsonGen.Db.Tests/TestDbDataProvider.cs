@@ -10,14 +10,14 @@ using Xunit;
 
 namespace JsonGen.Db.Tests
 {
+    public class DataType
+    {
+        public long Date { get; set; }
+        public int Score { get; set; }
+        public int Id { get; set; }
+    }
     public class TestDbDataProvider
     {
-        public class DataType
-        {
-            public long Date { get; set; }
-            public int Score { get; set; }
-            public int Id { get; set; }
-        }
 
         DataType[] data = new[]
         {

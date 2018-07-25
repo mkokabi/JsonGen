@@ -31,11 +31,9 @@ namespace JsonGen
 
         public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null)
         {
-            var metadata = metadataProvider.GetMetadata(metadataName);
-            if (metadata == null)
-            {
+            var metadata = metadataProvider.GetMetadata(metadataName)?? 
                 throw new GenerateException("Metadata provider return null.");
-            }
+            
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
@@ -74,21 +72,8 @@ namespace JsonGen
                     continue;
                 }
 
-                IEnumerable<dynamic> data = null;
+                IEnumerable<dynamic> data = await GetData(predicate, dataProviderType);
 
-                if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
-                {
-                    var filterableDataProvider =
-                        (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
-
-                    data = await filterableDataProvider.GetDataAsync(predicate);
-                }
-                else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
-                {
-                    var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
-
-                    data = await dataProvider.GetDataAsync();
-                }
                 data?.ToList().ForEach(row =>
                 {
                     if (fields.Any())
@@ -107,6 +92,39 @@ namespace JsonGen
                 });
             }
             return jLayout.ToString();
+        }
+
+        private IFilterableDataProvider filterableDataProvider;
+        protected IFilterableDataProvider FilterableDataProvider
+        {
+            set
+            {
+                this.filterableDataProvider = value;
+            }
+        }
+
+        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Type dataProviderType)
+        {
+            IEnumerable<dynamic> data = null;
+            if (filterableDataProvider != null)
+            {
+                return await filterableDataProvider.GetDataAsync(predicate);
+            }
+            if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var filterableDataProvider =
+                    (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await filterableDataProvider.GetDataAsync(predicate);
+            }
+            else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await dataProvider.GetDataAsync();
+            }
+
+            return data;
         }
 
         private Type GetDataProviderType(string dataProviderFullName)

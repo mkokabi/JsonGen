@@ -30,7 +30,14 @@ namespace JsonGen.Db
         public async Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate)
         {
             var query = await dbConnection.QueryAsync(this.query);
-            return query.Where(predicate);
+            if (predicate != null)
+            {
+                return query.Where(predicate);
+            }
+            else
+            {
+                return query;
+            }
         }
     }
 }

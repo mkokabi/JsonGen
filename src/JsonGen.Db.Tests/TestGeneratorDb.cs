@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -55,13 +56,13 @@ namespace JsonGen.Db.Tests
                     }
                 }
             });
-            var generator = new Generator(metadataProvider);
+            var generator = new Generator(metadataProvider, new DbDataProvider());
             var json = generator.Generate("myMeta", row => row.x < 12);
             output.WriteLine(json);
             json.Should().NotBeNull();
             JObject actual = JObject.Parse(json);
             JObject expected = JObject.Parse(File.ReadAllText("Jsons\\Test1-Output.json"));
-            JToken.DeepEquals(actual, expected).Should().BeTrue();
+            actual.Should().BeEquivalentTo(expected);
         }
     }
 }
