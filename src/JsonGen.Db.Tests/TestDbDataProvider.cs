@@ -14,6 +14,7 @@ namespace JsonGen.Db.Tests
         public long Date { get; set; }
         public int Score { get; set; }
         public int Id { get; set; }
+        public string Name { get; set; }
     }
     public class TestDbDataProvider
     {
@@ -23,12 +24,14 @@ namespace JsonGen.Db.Tests
             new DataType {
                 Date = 2490313600000,
                 Score = 100,
-                Id = 1000
+                Id = 1000,
+                Name = "Test1"
             },
             new DataType {
                 Date = 2490313600000,
                 Score = 100,
-                Id = 1001
+                Id = 1001,
+                Name = "Test2"
             }
         };
 
@@ -59,8 +62,12 @@ namespace JsonGen.Db.Tests
                       .ReturnsAsync(data);
 
             var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "Select * from MyView" };
-            await myDataProvider.GetDataAsync(new[] { new Filter { FieldName = "Id", Value = 1000 } });
-            myDataProvider.Query.Should().Be("Select * from MyView where Id = 1000");
+            await myDataProvider.GetDataAsync(new[] {
+                new Filter { FieldName = "Id", Value = 1000, Operator = Filter.Operators.G },
+                new Filter { FieldName = "Name", Value = "Test" }
+            });
+            myDataProvider.Query.Should().Be("Select * from MyView where Id > 1000 and Name = 'Test'");
+            
         }
     }
 }

@@ -50,13 +50,23 @@ namespace JsonGen.Db
             }
             foreach (var filter in filters)
             {
-                query += $"{filter.FieldName} {dbOperators[filter.Operator]} {filter.Value}";
+                string quotedValue = Quote(filter.Value);
+                query += $"{filter.FieldName} {dbOperators[filter.Operator]} {quotedValue}";
                 if (filter != filters.Last())
                 {
                     query += " and ";
                 }
             }
             return (await dbConnection.QueryAsync(this.query));
+        }
+
+        private string Quote(dynamic value)
+        {
+            if (value.GetType() == typeof(string))
+            {
+                return $"'{value}'";
+            }
+            return value.ToString();
         }
     }
 }
