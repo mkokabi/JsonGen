@@ -28,7 +28,7 @@ namespace JsonGenTestProject
         }
 
         [TestMethod]
-        public async Task Filterable_dataprovider_should_filter_the_data()
+        public async Task Filterable_dataprovider_should_filter_the_data_using_predicate()
         {
             var dataProvider = new DataProvider();
             var data = await dataProvider.GetDataAsync(r => r.x >= 2);

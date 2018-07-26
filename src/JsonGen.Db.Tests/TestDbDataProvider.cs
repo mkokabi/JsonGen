@@ -51,21 +51,16 @@ namespace JsonGen.Db.Tests
         }
 
         [Fact]
-        public async Task DbDataProvider_should_filter_data()
+        public async Task DbDataProvider_should_apply_filter_to_query()
         {
             var connection = new Mock<IDbConnection>();
 
             connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
                       .ReturnsAsync(data);
 
-            var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "MyStoreProc" };
-            var actualData = await myDataProvider.GetDataAsync(row => row.Id == 1000);
-            actualData.Should().NotBeNullOrEmpty()
-                .And.HaveCount(1);
-            actualData.ToList().ForEach(row =>
-            {
-                data.Where(d => d.Id == 1000).Should().HaveCount(1);
-            });
+            var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "Select * from MyView" };
+            await myDataProvider.GetDataAsync(new[] { new Filter { FieldName = "Id", Value = 1000 } });
+            myDataProvider.Query.Should().Be("Select * from MyView where Id = 1000");
         }
     }
 }

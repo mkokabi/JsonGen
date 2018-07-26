@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Filter.cs" />
     <Compile Include="GenerateException.cs" />
     <Compile Include="Generator.cs" />
     <Compile Include="DataSource.cs" />

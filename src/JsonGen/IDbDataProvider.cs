@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
 
 namespace JsonGen
 {
@@ -6,5 +8,6 @@ namespace JsonGen
     {
         IDbConnection DbConnection { get; set; }
         string Query { get; set; }
+        Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters);
     }
 }

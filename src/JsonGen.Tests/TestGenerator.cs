@@ -194,7 +194,7 @@ namespace JsonGenTestProject
         }
 
         [TestMethod]
-        public async Task Generator_should_throw_if_metadataprovider_return_metadata_null()
+        public void Generator_should_throw_if_metadataprovider_return_metadata_null()
         {
             // Arrange
             var metadataProvider = new Mock<IMetadataProvider>();
