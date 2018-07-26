@@ -31,11 +31,9 @@ namespace JsonGen
 
         public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null)
         {
-            var metadata = metadataProvider.GetMetadata(metadataName);
-            if (metadata == null)
-            {
+            var metadata = metadataProvider.GetMetadata(metadataName)?? 
                 throw new GenerateException("Metadata provider return null.");
-            }
+            
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
@@ -74,21 +72,8 @@ namespace JsonGen
                     continue;
                 }
 
-                IEnumerable<dynamic> data = null;
+                IEnumerable<dynamic> data = await GetData(predicate, dataProviderType, dataSource);
 
-                if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
-                {
-                    var filterableDataProvider =
-                        (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
-
-                    data = await filterableDataProvider.GetDataAsync(predicate);
-                }
-                else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
-                {
-                    var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
-
-                    data = await dataProvider.GetDataAsync();
-                }
                 data?.ToList().ForEach(row =>
                 {
                     if (fields.Any())
@@ -107,6 +92,35 @@ namespace JsonGen
                 });
             }
             return jLayout.ToString();
+        }
+
+        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Type dataProviderType, DataSource dataSource)
+        {
+            IEnumerable<dynamic> data = null;
+
+            if (predicate != null && typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
+                dbDataProvider.DbConnection = dataSource.DbConnection;
+                dbDataProvider.Query = dataSource.Query;
+
+                data = await dbDataProvider.GetDataAsync(predicate);
+            }
+            else if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var filterableDataProvider =
+                    (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await filterableDataProvider.GetDataAsync(predicate);
+            }
+            else if (typeof(IDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dataProvider = (IDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await dataProvider.GetDataAsync();
+            }
+
+            return data;
         }
 
         private Type GetDataProviderType(string dataProviderFullName)
