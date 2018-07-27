@@ -66,8 +66,24 @@ namespace JsonGen.Db.Tests
                 new Filter { FieldName = "Id", Value = 1000, Operator = Filter.Operators.G },
                 new Filter { FieldName = "Name", Value = "Test" }
             });
-            myDataProvider.Query.Should().Be("Select * from MyView where Id > 1000 and Name = 'Test'");
-            
+            myDataProvider.Query.Should().BeEquivalentTo("Select * from MyView where Id > 1000 and Name = 'Test'");            
         }
+
+        [Fact]
+        public async Task DbDataProvider_should_apply_filter_to_query_with_where()
+        {
+            var connection = new Mock<IDbConnection>();
+
+            connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
+                      .ReturnsAsync(data);
+
+            var myDataProvider = new DbDataProvider { DbConnection = connection.Object, Query = "Select * from MyView where score > 1000" };
+            await myDataProvider.GetDataAsync(new[] {
+                new Filter { FieldName = "Id", Value = 1000, Operator = Filter.Operators.G },
+                new Filter { FieldName = "Name", Value = "Test" }
+            });
+            myDataProvider.Query.Should().BeEquivalentTo("Select * from MyView where score > 1000 and Id > 1000 and Name = 'Test'");
+        }
+
     }
 }

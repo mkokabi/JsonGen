@@ -11,16 +11,18 @@ namespace JsonGen.Db.Tests
     public class TestDBExtensions
     {
         DataType[] data = new[]
-{
+        {
             new DataType {
                 Date = 2490313600000,
                 Score = 100,
-                Id = 1000
+                Id = 1000,
+                Name = "TestA"
             },
             new DataType {
                 Date = 2490313600000,
                 Score = 101,
-                Id = 1001
+                Id = 1001,
+                Name = "TestB"
             }
         };
 
@@ -31,7 +33,7 @@ namespace JsonGen.Db.Tests
             connection.SetupDapperAsync(c => c.QueryAsync<DataType>(It.IsAny<string>(), null, null, null, null))
                       .ReturnsAsync(data);
 
-            var dbDataProvider = new DbDataProvider();
+            // var dbDataProvider = new DbDataProvider();
 
             var myMetadataProvider = new BasicMetadataProvider(_ => 
                 new Metadata
@@ -58,7 +60,8 @@ namespace JsonGen.Db.Tests
     {
       'Date': 2490313600000,
       'Score': 100,
-      'Id': 1001
+      'Id': 1001,
+      'Name': 'TestB'
     }
   ]
 }");

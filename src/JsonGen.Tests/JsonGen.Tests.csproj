@@ -75,6 +75,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimplestForm.cs" />
     <Compile Include="TestFilterableDataProvider.cs" />
+    <Compile Include="AnotherSimpleForm.cs" />
     <Compile Include="ViewModels\AnalyticsCriteria.cs" />
     <Compile Include="ViewModels\AnalyticsModel.cs" />
     <Compile Include="ViewModels\AnalyticsPage.cs" />

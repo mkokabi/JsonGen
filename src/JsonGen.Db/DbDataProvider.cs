@@ -44,17 +44,18 @@ namespace JsonGen.Db
 
         public async Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters)
         {
-            if (filters.Any() && !query.ToUpper().Contains("WHERE"))
+            if (filters.Any())
             {
-                query += " where ";
-            }
-            foreach (var filter in filters)
-            {
-                string quotedValue = Quote(filter.Value);
-                query += $"{filter.FieldName} {dbOperators[filter.Operator]} {quotedValue}";
-                if (filter != filters.Last())
+                query += query.ToUpper().Contains("WHERE") ? " and " : " where ";
+
+                foreach (var filter in filters)
                 {
-                    query += " and ";
+                    string quotedValue = Quote(filter.Value);
+                    query += $"{filter.FieldName} {dbOperators[filter.Operator]} {quotedValue}";
+                    if (filter != filters.Last())
+                    {
+                        query += " and ";
+                    }
                 }
             }
             return (await dbConnection.QueryAsync(this.query));

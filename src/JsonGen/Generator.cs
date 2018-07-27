@@ -29,7 +29,7 @@ namespace JsonGen
             }
         }
 
-        public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null)
+        public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null, Filter[] filters = null)
         {
             var metadata = metadataProvider.GetMetadata(metadataName)?? 
                 throw new GenerateException("Metadata provider return null.");
@@ -72,39 +72,53 @@ namespace JsonGen
                     continue;
                 }
 
-                IEnumerable<dynamic> data = await GetData(predicate, dataProviderType, dataSource);
+                IEnumerable<dynamic> data = await GetData(predicate, filters, dataProviderType, dataSource);
 
                 data?.ToList().ForEach(row =>
                 {
-                    if (fields.Any())
+                    //if (fields.Any())
+                    //{
+                    //    var newRow = new JObject();
+                    //    fields.Keys.ToList().ForEach(key =>
+                    //    {
+                    //        newRow.Add(key, row.GetType()?.GetProperty(key)?.GetValue(row, null));
+                    //    });
+                    //    (dataToken as JArray).Add(JObject.FromObject(newRow));
+                    //}
+                    //else
                     {
-                        var newRow = new JObject();
-                        fields.Keys.ToList().ForEach(key =>
+                        if ((row.GetType() != null) && row.GetType().IsPrimitive)
                         {
-                            newRow.Add(key, row.GetType().GetProperty(key)?.GetValue(row, null));
-                        });
-                        (dataToken as JArray).Add(JObject.FromObject(newRow));
-                    }
-                    else
-                    {
-                        (dataToken as JArray).Add(JObject.FromObject(row));
+                            (dataToken as JArray).Add((object)row);
+                        }
+                        else
+                        {
+                            (dataToken as JArray).Add(JObject.FromObject(row));
+                        }
                     }
                 });
             }
             return jLayout.ToString();
         }
 
-        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Type dataProviderType, DataSource dataSource)
+        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
         {
             IEnumerable<dynamic> data = null;
 
-            if (predicate != null && typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
+            if (typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
             {
                 var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
                 dbDataProvider.DbConnection = dataSource.DbConnection;
                 dbDataProvider.Query = dataSource.Query;
 
-                data = await dbDataProvider.GetDataAsync(predicate);
+                if (filters != null)
+                {
+                    data = await dbDataProvider.GetDataAsync(filters);
+                }
+                else
+                {
+                    data = await dbDataProvider.GetDataAsync(predicate);
+                }
             }
             else if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
             {
