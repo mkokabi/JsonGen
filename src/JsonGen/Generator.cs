@@ -74,18 +74,33 @@ namespace JsonGen
 
                 IEnumerable<dynamic> data = await GetData(predicate, filters, dataProviderType, dataSource);
 
+                List<string> keysToBeRemoved = null;
                 data?.ToList().ForEach(row =>
                 {
-                    //if (fields.Any())
-                    //{
-                    //    var newRow = new JObject();
-                    //    fields.Keys.ToList().ForEach(key =>
-                    //    {
-                    //        newRow.Add(key, row.GetType()?.GetProperty(key)?.GetValue(row, null));
-                    //    });
-                    //    (dataToken as JArray).Add(JObject.FromObject(newRow));
-                    //}
-                    //else
+                    if (fields.Any())
+                    {
+                        var newRow = JObject.FromObject(row);
+
+                        if (keysToBeRemoved == null)
+                        {
+                            keysToBeRemoved = new List<string>();
+                            foreach (var property in ((JObject)newRow).Children().OfType<JProperty>())
+                            {
+                                if (!fields.Keys.Any(k => k.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)))
+                                {
+                                    keysToBeRemoved.Add(property.Name);
+                                }
+                            }
+                       }
+                        foreach (var key in keysToBeRemoved)
+                        {
+                            newRow.Remove(key);
+                        }
+
+                        (dataToken as JArray).Add(newRow);
+
+                    }
+                    else
                     {
                         if ((row.GetType() != null) && row.GetType().IsPrimitive)
                         {
@@ -110,7 +125,7 @@ namespace JsonGen
                 var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
                 dbDataProvider.DbConnection = dataSource.DbConnection;
                 dbDataProvider.Query = dataSource.Query;
-
+                
                 if (filters != null)
                 {
                     data = await dbDataProvider.GetDataAsync(filters);

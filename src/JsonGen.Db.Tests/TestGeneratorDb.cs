@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace JsonGen.Db.Tests
 
         Layout layout = new Layout { Content = File.ReadAllText("Jsons\\Test1-Layout.json") };
 
-        public class DbDataProvider : IDbDataProvider
+        public class MyDbDataProvider : IDbDataProvider
         {
             public IDbConnection DbConnection { get; set; }
             public string Query { get; set; }
@@ -60,13 +61,13 @@ namespace JsonGen.Db.Tests
                 {
                     new DataSource {
                         Key = "A",
-                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DataProviderFullName = typeof(MyDbDataProvider).FullName,
                         DbConnection = connection.Object,
                         Query = "MyQuery"
                     },
                     new DataSource {
                         Key = "B",
-                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DataProviderFullName = typeof(MyDbDataProvider).FullName,
                         DbConnection = connection.Object,
                         Query = "MyQuery"
                     }
@@ -78,6 +79,42 @@ namespace JsonGen.Db.Tests
             json.Should().NotBeNull();
             JObject actual = JObject.Parse(json);
             JObject expected = JObject.Parse(File.ReadAllText("Jsons\\Test1-Output.json"));
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        public class MyDataType
+        {
+            public string Name { get; set; }
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_return_filtered_data_from_db()
+        {
+            var connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Work\JsonGen\src\JsonGen.Db.Tests\TestDatabase.mdf;Integrated Security=True;Connect Timeout=30";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] { new Filter { FieldName = "Id", Value = 1 } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
     }
