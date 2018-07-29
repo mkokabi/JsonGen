@@ -17,11 +17,11 @@ namespace JsonGen
 
         private const string dataSourceNode = "_dataSource";
         
-        public string Generate(string metadataName, Func<dynamic, bool> predicate = null)
+        public string Generate(string metadataName, Func<dynamic, bool> predicate = null, Dictionary<string, dynamic> parameters = null)
         {
             try
             {
-                return GenerateAsync(metadataName, predicate).Result;
+                return GenerateAsync(metadataName, predicate, parameters: parameters).Result;
             }
             catch (AggregateException e) when (e.InnerExceptions.FirstOrDefault().GetType()== typeof(GenerateException))
             {
@@ -29,7 +29,8 @@ namespace JsonGen
             }
         }
 
-        public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null, Filter[] filters = null)
+        public async Task<string> GenerateAsync(string metadataName, Func<dynamic, bool> predicate = null, Filter[] filters = null, 
+                                                Dictionary<string, dynamic> parameters = null)
         {
             var metadata = metadataProvider.GetMetadata(metadataName)?? 
                 throw new GenerateException("Metadata provider return null.");
@@ -51,6 +52,11 @@ namespace JsonGen
                                         .First(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
                                         .Equals(dataSourceNode, StringComparison.InvariantCultureIgnoreCase))
                                         as JProperty).Value.ToString();
+
+                if (parameters != null && parameters.Any())
+                {
+                    dataSourceName = applyParametersOnDataSourceName(dataSourceName, parameters);
+                }
 
                 var vs = dataToken.Values();
 
@@ -114,6 +120,15 @@ namespace JsonGen
                 });
             }
             return jLayout.ToString();
+        }
+
+        private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                dataSourceName = dataSourceName.Replace($"[{parameter.Key}]", parameter.Value);
+            }
+            return dataSourceName;
         }
 
         private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)

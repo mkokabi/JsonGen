@@ -44,6 +44,9 @@
     <Reference Include="FluentAssertions, Version=5.4.1.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentAssertions.5.4.1\lib\net45\FluentAssertions.dll</HintPath>
     </Reference>
+    <Reference Include="FluentAssertions.Json, Version=5.0.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.Json.5.0.0\lib\net451\FluentAssertions.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\MSTest.TestFramework.1.2.1\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
@@ -76,6 +79,7 @@
     <Compile Include="SimplestForm.cs" />
     <Compile Include="TestFilterableDataProvider.cs" />
     <Compile Include="AnotherSimpleForm.cs" />
+    <Compile Include="TestParametricDatasource.cs" />
     <Compile Include="ViewModels\AnalyticsCriteria.cs" />
     <Compile Include="ViewModels\AnalyticsModel.cs" />
     <Compile Include="ViewModels\AnalyticsPage.cs" />
@@ -93,6 +97,7 @@
     <Compile Include="ViewModels\VisualItem.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Jsons\Test1-Layout.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
