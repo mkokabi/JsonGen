@@ -3,20 +3,42 @@ A Json generator engine based on the metadata including layout and data provider
 
 ## Sample
 Let's start with the simplest form:
-
 ```csharp
-    [TestClass]
-    public class SimplestForm
-    {
-        public class MyMetadataProvider : MetadataProvider
-        {
-            public override Metadata GetMetadata(string metadataName)
+var generator = new Generator(new BasicMetadataProvider(name => new Metadata
             {
-                return new Metadata
-                {
-                    DataSources = new[]
+                DataSources = new[]
                         {
                             new DataSource {
+                                Key = "W",
+                                DataProviderFullName = typeof(DataProvider).FullName
+                            }
+                        },
+                Labels = new Labels { },
+                Layout = new Layout { Content = "{'_dataSource':'W', 'data':[]}" }
+            }));
+            var generatedJson = generator.Generate("MyMetadata");
+            generatedJson.Should().NotBeNull();
+            var actual = JToken.Parse(generatedJson);
+            var expected = JToken.Parse(@"{
+                                            '_dataSource': 'W',
+                                            'data': [1, 2, 3]
+                                        }");
+```
+
+or another way setting fields
+```csharp
+[TestClass]
+public class SimplestForm
+{
+   public class MyMetadataProvider : MetadataProvider
+   {
+      public override Metadata GetMetadata(string metadataName)
+      {
+         return new Metadata
+         {
+            DataSources = new[]
+            {
+               new DataSource {
                                 Key = "W",
                                 DataProviderFullName = typeof(DataProvider).FullName
                             }
@@ -35,25 +57,25 @@ Let's start with the simplest form:
             };
         }
 
-        [TestMethod]
-        public void Simple_Test()
-        {
-            var metadataProvider = new MyMetadataProvider();
+      [TestMethod]
+      public void Simple_Test()
+      {
+        var metadataProvider = new MyMetadataProvider();
 
-            var generator = new Generator(metadataProvider);
-            var generatedJson = generator.Generate("SomeMetadata");
-            var expected = @"{
-  ""_dataSource"": ""W"",
-  ""data"": [
-    {
-      ""field1"": ""Hello"",
-      ""field2"": ""World""
+        var generator = new Generator(metadataProvider);
+        var generatedJson = generator.Generate("SomeMetadata");
+        var expected = @"{
+        '_dataSource': 'W',
+        'data': [
+          {
+            'field1': 'Hello',
+            'field2': 'World'
+          }
+        ]
+      }";
+      Assert.AreEqual(expected, generatedJson);
     }
-  ]
-}";
-            Assert.AreEqual(expected, generatedJson);
-        }
-    }
+  }
 ```
 
 ## Create metadata:
