@@ -61,9 +61,11 @@ namespace JsonGen
                 var vs = dataToken.Values();
 
                 var fields = new Dictionary<string, string>();
-                vs.ToList().ForEach(field =>
+                vs.Where(f => f is JProperty).ToList().ForEach(field =>
                     fields[((JProperty)field).Name] = ((JProperty)field).Value.ToString().TrimStart('@')
                 );
+                // values will be used for an array element like data: [x, y]
+                var values = vs.Where(f => f is JValue).ToList();
 
                 var dataSource = metadata.DataSources.FirstOrDefault(ds => ds.Key == dataSourceName);
                 if (dataSource == null)
@@ -114,7 +116,14 @@ namespace JsonGen
                         }
                         else
                         {
-                            (dataToken as JArray).Add(JObject.FromObject(row));
+                            var jContainer = JObject.FromObject(row) as JContainer;
+                            if (jContainer != null)
+                            {
+                                var rowProperties = jContainer.ToList();
+                                rowProperties
+                                    .Where(rp => values.Any(v => v.ToString().Equals(((JProperty)rp).Name, StringComparison.InvariantCultureIgnoreCase)))
+                                    .ToList().ForEach(rowProp => (dataToken as JArray).Add(((JProperty)rowProp).Value));
+                            }
                         }
                     }
                 });

@@ -70,6 +70,18 @@ namespace JsonGen.Db.Tests
                         DataProviderFullName = typeof(MyDbDataProvider).FullName,
                         DbConnection = connection.Object,
                         Query = "MyQuery"
+                    },
+                    new DataSource {
+                        Key = "C",
+                        DataProviderFullName = typeof(MyDbDataProvider).FullName,
+                        DbConnection = connection.Object,
+                        Query = "MyQuery"
+                    },
+                    new DataSource {
+                        Key = "D",
+                        DataProviderFullName = typeof(MyDbDataProvider).FullName,
+                        DbConnection = connection.Object,
+                        Query = "MyQuery"
                     }
                 }
             });

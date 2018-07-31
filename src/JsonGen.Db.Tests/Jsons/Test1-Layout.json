@@ -17,5 +17,13 @@
         "yp": "@y"
       }
     ]
+  },
+  "nodeC": {
+    "_dataSource": "C",
+    "someDataFromC": [ "x" ]
+  },
+  "nodeD": {
+    "_dataSource": "D",
+    "someDataFromC": [ "x", "y" ]
   }
 }

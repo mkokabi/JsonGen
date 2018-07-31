@@ -38,7 +38,7 @@ namespace JsonGen.Db.Tests
             var myMetadataProvider = new BasicMetadataProvider(_ => 
                 new Metadata
                 {
-                    Layout = new Layout { Content = "{'_dataSource':'A', 'data':[]}" },
+                    Layout = new Layout { Content = "{'_dataSource':'A', 'data':[{'Date':'', 'Score':'', 'Id':'', 'Name':''}]}" },
                     Labels = new Labels(),
                     DataSources = new[] {
                         new DataSource {
