@@ -28,24 +28,19 @@ The output will be
 
 or another way with setting fields
 ```csharp
-public class MyMetadataProvider : MetadataProvider
-{
-  public override Metadata GetMetadata(string metadataName)
+BasicMetadataProvider metadataProvider = new BasicMetadataProvider(name => new Metadata
   {
-    return new Metadata
+    DataSources = new[]
     {
-      DataSources = new[]
-      {
-        new DataSource {
-          Key = "W",
-          DataProviderFullName = typeof(DataProvider).FullName
-        }
-      },
-      Labels = new Labels { },
-      Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
-    };
+      new DataSource {
+      Key = "W",
+      DataProviderFullName = typeof(DataProvider).FullName
+    }
+  },
+  Labels = new Labels { },
+  Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
   }
-}
+);
 
 public class DataProvider : IDataProvider
 {
@@ -58,8 +53,6 @@ public class DataProvider : IDataProvider
 [TestMethod]
 public void Simple_Test()
 {
-  var metadataProvider = new MyMetadataProvider();
-
   var generator = new Generator(metadataProvider);
   var generatedJson = generator.Generate("SomeMetadata");
   var expected = @"{
@@ -70,8 +63,7 @@ public void Simple_Test()
             'field2': 'World'
           }
         ]
-      }";
-  Assert.AreEqual(expected, generatedJson);
+      }";  
 }
   }
 ```
