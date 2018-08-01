@@ -5,66 +5,64 @@ A Json generator engine based on the metadata including layout and data provider
 Let's start with the simplest form:
 ```csharp
 var generator = new Generator(new BasicMetadataProvider(name => new Metadata
-            {
-                DataSources = new[]
-                        {
-                            new DataSource {
-                                Key = "W",
-                                DataProviderFullName = typeof(DataProvider).FullName
-                            }
-                        },
-                Labels = new Labels { },
-                Layout = new Layout { Content = "{'_dataSource':'W', 'data':[]}" }
-            }));
-            var generatedJson = generator.Generate("MyMetadata");
-            generatedJson.Should().NotBeNull();
-            var actual = JToken.Parse(generatedJson);
-            var expected = JToken.Parse(@"{
-                                            '_dataSource': 'W',
-                                            'data': [1, 2, 3]
-                                        }");
+{
+  DataSources = new[]
+  {
+    new DataSource {
+      Key = "W",
+      DataProviderFullName = typeof(DataProvider).FullName
+    }
+  },
+  Labels = new Labels { },
+  Layout = new Layout { Content = "{'_dataSource':'W', 'data':[]}" }
+}));
+var generatedJson = generator.Generate("MyMetadata");
+```
+The output will be 
+```
+{
+  '_dataSource': 'W',
+  'data': [1, 2, 3]
+};
 ```
 
-or another way setting fields
+or another way with setting fields
 ```csharp
-[TestClass]
-public class SimplestForm
+public class MyMetadataProvider : MetadataProvider
 {
-   public class MyMetadataProvider : MetadataProvider
-   {
-      public override Metadata GetMetadata(string metadataName)
+  public override Metadata GetMetadata(string metadataName)
+  {
+    return new Metadata
+    {
+      DataSources = new[]
       {
-         return new Metadata
-         {
-            DataSources = new[]
-            {
-               new DataSource {
-                                Key = "W",
-                                DataProviderFullName = typeof(DataProvider).FullName
-                            }
-                        },
-                    Labels = new Labels { },
-                    Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
-                };
-            }
+        new DataSource {
+          Key = "W",
+          DataProviderFullName = typeof(DataProvider).FullName
         }
+      },
+      Labels = new Labels { },
+      Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
+    };
+  }
+}
 
-        public class DataProvider : IDataProvider
-        {
-            public IEnumerable<dynamic> GetData() => new[]
-            {
-                new { field1 ="Hello",  field2 = "World" }
-            };
-        }
+public class DataProvider : IDataProvider
+{
+  public IEnumerable<dynamic> GetData() => new[]
+  {
+    new { field1 ="Hello",  field2 = "World" }
+  };
+}
 
-      [TestMethod]
-      public void Simple_Test()
-      {
-        var metadataProvider = new MyMetadataProvider();
+[TestMethod]
+public void Simple_Test()
+{
+  var metadataProvider = new MyMetadataProvider();
 
-        var generator = new Generator(metadataProvider);
-        var generatedJson = generator.Generate("SomeMetadata");
-        var expected = @"{
+  var generator = new Generator(metadataProvider);
+  var generatedJson = generator.Generate("SomeMetadata");
+  var expected = @"{
         '_dataSource': 'W',
         'data': [
           {
@@ -73,22 +71,30 @@ public class SimplestForm
           }
         ]
       }";
-      Assert.AreEqual(expected, generatedJson);
-    }
+  Assert.AreEqual(expected, generatedJson);
+}
   }
 ```
 
-## Create metadata:
-Metadata class build of 3 main components: Layout, Datasources and Labels
+## Metadata:
+Metadata class contains 3 main components: Layout, Datasources and Labels
 
 ## Layout
 Simply it holds the content as a Json
+```csharp
+public class Layout
+{
+    public string Content { get; set; }
+}
+```
+In this Json the **_datasource** element is pointing to the key of a datasource. The first array element sibling to this node is where the data is going to be placed.
 
-## DataSources
-An array of datasources. Each datasource has a key, a list of fields and and the full name of a class implementing IDataProvider
+## Datasources
+Another important part of Metadata is Datasources which is an array of **Datasource**. The main element of datasource is the **Key** which is the reference used in the layout. the next important part is **DataProviderFullName** which is the full name of a class implementing IDataProvider
 
 ### IDataProvider
-Is the interface must be implemented by any data provider and has one simple method GetData which returns an IEnumerable of dynamic
+This interface must be implemented by any data provider and has one simple method GetData which returns an IEnumerable of dynamic.
+There is a DbDataProvider in JsonGen.Db project which can be used on the databases. 
 
 ## Labels
 
