@@ -2,6 +2,8 @@
 A Json generator engine based on the metadata including layout and data providers defined in .Net languages. Usually, if a specific Json needs to be created based on a defined layout, developer has to create all the classes and hierarchy and then map his data to this structure, and then finally serialize his root class to get the Json. **JsonGen** is following another appraoch. The steps is: tag the Json layout with **\_datasource** and then define your datasource(s). Finally, ask **JsonGen** to generate the finall Json with the data.
 
 ## Sample
+<iframe width="100%" height="475" src="https://dotnetfiddle.net/Widget/hNKHYQ" frameborder="0"></iframe>
+
 Let's start with the simplest form:
 ```csharp
 public class DataProvider : IDataProvider
