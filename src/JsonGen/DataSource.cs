@@ -11,5 +11,7 @@ namespace JsonGen
         public IDbConnection DbConnection { get; set; }
 
         public string Query { get; set; }
+
+        public DatasourceOptions Options { get; set; }
     }
 }

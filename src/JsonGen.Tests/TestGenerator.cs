@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using Report.ViewModels;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace JsonGenTestProject
 {
@@ -149,6 +151,21 @@ namespace JsonGenTestProject
             });
         }
 
+        public class DataProviderC : IFilterableDataProvider
+        {
+            public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult(new[]
+            {
+                new { x = 1 }, 
+                new { x = 2 }, 
+                new { x = 3 }, 
+            });
+
+            public async Task<IEnumerable<dynamic>> GetDataAsync(System.Func<dynamic, bool> predicate)
+            {
+                return (await GetDataAsync()).Where(predicate);
+            }
+        }
+
         [TestMethod]
         public void Generator_should_replace_data()
         {
@@ -203,6 +220,25 @@ namespace JsonGenTestProject
 
             // Action + Assertion
             generator.Invoking(g => g.Generate(It.IsAny<string>())).Should().Throw<GenerateException>();
+        }
+
+        [TestMethod]
+        public void Generator_should_ignore_datasources_with_ApplyFilter_option_set_to_false()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'C', 'data':[{'x':''}]},'node2':{'_dataSource':'D', 'data':[{'x':''}]}}" },
+                DataSources = new[] { 
+                    new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "C" },
+                    new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "D", Options = new DatasourceOptions {ApplyFilter = false } }
+                    }
+            });
+            var generator = new Generator(metadataProvider);
+            var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'node1':{'_dataSource':'C', 'data':[{'x':3}]}, 'node2':{'_dataSource':'D', 'data':[{'x':1},{'x':2},{'x':3}]}}");
+            actual.Should().BeEquivalentTo(expected);
         }
     }
 }

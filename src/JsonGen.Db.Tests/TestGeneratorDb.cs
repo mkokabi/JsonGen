@@ -99,6 +99,8 @@ namespace JsonGen.Db.Tests
             public string Name { get; set; }
         }
 
+        const string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Work\JsonGen\src\JsonGen.Db.Tests\TestDatabase.mdf;Integrated Security=True;Connect Timeout=30";
+
 #if DEBUG
         [Fact]
 #else
@@ -106,7 +108,6 @@ namespace JsonGen.Db.Tests
 #endif
         public async Task DbGenerator_should_return_filtered_data_from_db()
         {
-            var connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Work\JsonGen\src\JsonGen.Db.Tests\TestDatabase.mdf;Integrated Security=True;Connect Timeout=30";
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
             {
                 Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
@@ -127,6 +128,36 @@ namespace JsonGen.Db.Tests
             json.Should().NotBeNull();
             var actual = JObject.Parse(json);
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_ignore_filtering_if_filteroption_is_set_to_false()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from TestTable",
+                        Options = new DatasourceOptions { ApplyFilter = false }
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] { new Filter { FieldName = "Id", Value = 1 } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
     }

@@ -143,6 +143,11 @@ namespace JsonGen
         private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
         {
             IEnumerable<dynamic> data = null;
+            if (dataSource.Options?.ApplyFilter == false)
+            {
+                predicate = null;
+                filters = null;
+            }
 
             if (typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
             {
