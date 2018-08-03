@@ -173,12 +173,8 @@ namespace JsonGenTestProject
                 throw new System.NotImplementedException();
             }
 
-            public async Task<dynamic> GetScalarAsync() => await Task.FromResult(1);
-
-            public Task<dynamic> GetScalarDataAsync()
-            {
-                throw new System.NotImplementedException();
-            }
+            public async Task<dynamic> GetScalarDataAsync() => await Task.FromResult(1);
+           
         }
 
         [TestMethod]
@@ -261,7 +257,7 @@ namespace JsonGenTestProject
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
             {
-                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'S', 'data': 'x' } }" },
+                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'S', 'data': ['x'] } }" },
                 DataSources = new[] {
                     new DataSource { DataProviderFullName = typeof(ScalarDataProvider).FullName, Key = "S" }
                 }

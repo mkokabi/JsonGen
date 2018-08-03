@@ -40,13 +40,13 @@ namespace JsonGen
             var dataTokens =
                 jLayout.SelectTokens("$..*")
                         .Where(jt => ((jt.Type == JTokenType.Array) || (jt.Type == JTokenType.Object)) &&
-                                     jt.Parent.Parent is JObject &&
-                                    (jt.Parent.Parent as JObject).Children()
+                                     jt.Parent?.Parent is JObject &&
+                                    (jt.Parent?.Parent as JObject).Children()
                                         .Any(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
                                                         .Equals(dataSourceNode, 
                                                             StringComparison.InvariantCultureIgnoreCase)));
 
-            foreach (var dataToken in dataTokens)
+            foreach (var dataToken in dataTokens.ToList())
             {
                 var dataSourceName = ((dataToken.Parent.Parent as JObject).Children()
                                         .First(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
@@ -70,9 +70,9 @@ namespace JsonGen
                     continue;
                 }
 
-                if (dataToken.Type == JTokenType.Object)
+                if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    ApplyScalar((JObject)dataToken, dataProviderType);
+                    await ApplyScalar((JArray)dataToken, dataProviderType, predicate, filters, dataSource);
                     continue;
                 }
 
@@ -138,10 +138,11 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
-        private void ApplyScalar(JObject jObject, Type dataProviderType)
+        private async Task ApplyScalar(JArray jArray, Type dataProviderType, Func<dynamic, bool> predicate, 
+            Filter[] filters, DataSource dataSource)
         {
-
-            jObject = new JObject();
+            dynamic data = await GetScalarData(predicate, filters, dataProviderType, dataSource);
+            (jArray.Parent as JProperty).Value = new JValue(data);
         }
 
         private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
