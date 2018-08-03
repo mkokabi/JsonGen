@@ -39,7 +39,7 @@ namespace JsonGen
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
                 jLayout.SelectTokens("$..*")
-                        .Where(jt => jt.Type == JTokenType.Array &&
+                        .Where(jt => ((jt.Type == JTokenType.Array) || (jt.Type == JTokenType.Object)) &&
                                      jt.Parent.Parent is JObject &&
                                     (jt.Parent.Parent as JObject).Children()
                                         .Any(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
@@ -58,6 +58,24 @@ namespace JsonGen
                     dataSourceName = applyParametersOnDataSourceName(dataSourceName, parameters);
                 }
 
+                var dataSource = metadata.DataSources.FirstOrDefault(ds => ds.Key == dataSourceName);
+                if (dataSource == null)
+                {
+                    continue;
+                }
+
+                var dataProviderType = GetDataProviderType(dataSource.DataProviderFullName);
+                if (dataProviderType == null)
+                {
+                    continue;
+                }
+
+                if (dataToken.Type == JTokenType.Object)
+                {
+                    ApplyScalar((JObject)dataToken, dataProviderType);
+                    continue;
+                }
+
                 var vs = dataToken.Values();
 
                 var fields = new Dictionary<string, string>();
@@ -67,18 +85,7 @@ namespace JsonGen
                 // values will be used for an array element like data: [x, y]
                 var values = vs.Where(f => f is JValue).ToList();
 
-                var dataSource = metadata.DataSources.FirstOrDefault(ds => ds.Key == dataSourceName);
-                if (dataSource == null)
-                {
-                    continue;
-                }
-
                 (dataToken as JArray).RemoveAll();
-                var dataProviderType = GetDataProviderType(dataSource.DataProviderFullName);
-                if (dataProviderType == null)
-                {
-                    continue;
-                }
 
                 IEnumerable<dynamic> data = await GetData(predicate, filters, dataProviderType, dataSource);
 
@@ -131,6 +138,12 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
+        private void ApplyScalar(JObject jObject, Type dataProviderType)
+        {
+
+            jObject = new JObject();
+        }
+
         private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
         {
             foreach (var parameter in parameters)
@@ -138,6 +151,47 @@ namespace JsonGen
                 dataSourceName = dataSourceName.Replace($"[{parameter.Key}]", parameter.Value);
             }
             return dataSourceName;
+        }
+
+        private async Task<dynamic> GetScalarData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
+        {
+            dynamic data = null;
+            if (dataSource.Options?.ApplyFilter == false)
+            {
+                predicate = null;
+                filters = null;
+            }
+
+            if (typeof(IScalarDbDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dbDataProvider = (IScalarDbDataProvider)Activator.CreateInstance(dataProviderType);
+                dbDataProvider.DbConnection = dataSource.DbConnection;
+                dbDataProvider.Query = dataSource.Query;
+
+                if (filters != null)
+                {
+                    data = await dbDataProvider.GetScalarDataAsync(filters);
+                }
+                else
+                {
+                    data = await dbDataProvider.GetScalarDataAsync(predicate);
+                }
+            }
+            else if (predicate != null && typeof(IScalarFilterableDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var filterableDataProvider =
+                    (IScalarFilterableDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await filterableDataProvider.GetScalarDataAsync(predicate);
+            }
+            else if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dataProvider = (IScalarDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await dataProvider.GetScalarDataAsync();
+            }
+
+            return data;
         }
 
         private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)

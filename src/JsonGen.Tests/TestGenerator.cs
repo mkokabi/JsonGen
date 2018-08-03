@@ -166,6 +166,21 @@ namespace JsonGenTestProject
             }
         }
 
+        public class ScalarDataProvider : IScalarDataProvider
+        {
+            public Task<IEnumerable<dynamic>> GetDataAsync()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public async Task<dynamic> GetScalarAsync() => await Task.FromResult(1);
+
+            public Task<dynamic> GetScalarDataAsync()
+            {
+                throw new System.NotImplementedException();
+            }
+        }
+
         [TestMethod]
         public void Generator_should_replace_data()
         {
@@ -231,13 +246,31 @@ namespace JsonGenTestProject
                 DataSources = new[] { 
                     new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "C" },
                     new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "D", Options = new DatasourceOptions {ApplyFilter = false } }
-                    }
+                }
             });
             var generator = new Generator(metadataProvider);
             var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
             json.Should().NotBeNull();
             var actual = JObject.Parse(json);
             var expected = JObject.Parse("{'node1':{'_dataSource':'C', 'data':[{'x':3}]}, 'node2':{'_dataSource':'D', 'data':[{'x':1},{'x':2},{'x':3}]}}");
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [TestMethod]
+        public void Generator_should_get_scalar_values()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'S', 'data': 'x' } }" },
+                DataSources = new[] {
+                    new DataSource { DataProviderFullName = typeof(ScalarDataProvider).FullName, Key = "S" }
+                }
+            });
+            var generator = new Generator(metadataProvider);
+            var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'node1':{'_dataSource':'S', 'data':1 }}");
             actual.Should().BeEquivalentTo(expected);
         }
     }

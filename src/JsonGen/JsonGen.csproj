@@ -53,6 +53,9 @@
     <Compile Include="IFilterableDataProvider.cs" />
     <Compile Include="IGenerator.cs" />
     <Compile Include="IMetadataProvider.cs" />
+    <Compile Include="IScalarDataProvider.cs" />
+    <Compile Include="IScalarDbDataProvider.cs" />
+    <Compile Include="IScalarFilterableDataProvider.cs" />
     <Compile Include="Labels.cs" />
     <Compile Include="Layout.cs" />
     <Compile Include="Metadata.cs" />
