@@ -72,7 +72,7 @@ namespace JsonGen
 
                 if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    await ApplyScalar((JArray)dataToken, dataProviderType, predicate, filters, dataSource);
+                    await ApplyScalar((JArray)dataToken, dataProviderType, filters, dataSource);
                     continue;
                 }
 
@@ -138,10 +138,10 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
-        private async Task ApplyScalar(JArray jArray, Type dataProviderType, Func<dynamic, bool> predicate, 
+        private async Task ApplyScalar(JArray jArray, Type dataProviderType, 
             Filter[] filters, DataSource dataSource)
         {
-            dynamic data = await GetScalarData(predicate, filters, dataProviderType, dataSource);
+            dynamic data = await GetScalarData(filters, dataProviderType, dataSource);
             (jArray.Parent as JProperty).Value = new JValue(data);
         }
 
@@ -154,12 +154,11 @@ namespace JsonGen
             return dataSourceName;
         }
 
-        private async Task<dynamic> GetScalarData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
+        private async Task<dynamic> GetScalarData(Filter[] filters, Type dataProviderType, DataSource dataSource)
         {
             dynamic data = null;
             if (dataSource.Options?.ApplyFilter == false)
             {
-                predicate = null;
                 filters = null;
             }
 
@@ -175,16 +174,10 @@ namespace JsonGen
                 }
                 else
                 {
-                    data = await dbDataProvider.GetScalarDataAsync(predicate);
+                    data = await dbDataProvider.GetScalarDataAsync();
                 }
             }
-            else if (predicate != null && typeof(IScalarFilterableDataProvider).IsAssignableFrom(dataProviderType))
-            {
-                var filterableDataProvider =
-                    (IScalarFilterableDataProvider)Activator.CreateInstance(dataProviderType);
-
-                data = await filterableDataProvider.GetScalarDataAsync(predicate);
-            }
+            
             else if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
             {
                 var dataProvider = (IScalarDataProvider)Activator.CreateInstance(dataProviderType);

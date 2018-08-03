@@ -2,7 +2,7 @@
 
 namespace JsonGen
 {
-    public interface IScalarDbDataProvider : IScalarFilterableDataProvider, IDbDataProvider
+    public interface IScalarDbDataProvider : IScalarDataProvider, IDbDataProvider 
     {
         Task<dynamic> GetScalarDataAsync(Filter[] filters);
     }
