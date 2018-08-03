@@ -143,7 +143,7 @@ var json = await generator.GenerateAsync("myMeta",
 	);
 ```
 The output would be:
-```json
+```
 {'_dataSource': 'A', 'data': [ { 'Name': 'MK' }]}
 ```
 
@@ -193,7 +193,7 @@ var metadataProvider = new BasicMetadataProvider(_ => new Metadata
 var generator = new Generator(metadataProvider);
 ```
 The ouput would be 
-```json
+```
 {'_dataSource': 'A', 'data': 2 }
 ```
 
@@ -214,8 +214,8 @@ var basicMetadataProvider = new BasicMetadataProvider(_ =>
         {
           new DataSource { Key = "ds_A", DataProviderFullName = typeof(DataProviderA).FullName },
           new DataSource { Key = "ds_B", DataProviderFullName = typeof(DataProviderB).FullName },
-		}
-	});
+        }
+    });
 
 var generator = new Generator(basicMetadataProvider);
 var json = generator.Generate(
@@ -226,6 +226,6 @@ var json = generator.Generate(
 ```
 At run time the parameter **p** would be changed with its value of **B** therefore datasource **ds_B** would be used:
 
-```json
+```
 {'_dataSource':'ds_[p]', 'data':[4, 5, 6]}
 ```

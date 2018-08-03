@@ -257,7 +257,7 @@ namespace JsonGenTestProject
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
             {
-                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'S', 'data': ['x'] } }" },
+                Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'S', 'data': [] } }" },
                 DataSources = new[] {
                     new DataSource { DataProviderFullName = typeof(ScalarDataProvider).FullName, Key = "S" }
                 }
