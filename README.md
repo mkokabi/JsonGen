@@ -6,25 +6,26 @@ Let's start with the simplest form:
 ```csharp
 public class DataProvider : IDataProvider
 {
-  public async Task<IEnumerable<dynamic>> GetDataAsync() => await Task.FromResult((new dynamic[]
-    {
-      1, 2, 3
-    }).AsEnumerable()
-  );
+   public async Task<IEnumerable<dynamic>> GetDataAsync() => 
+	  await Task.FromResult((new dynamic[]
+		{
+		  1, 2, 3
+		}).AsEnumerable());
 }
 
-var generator = new Generator(new BasicMetadataProvider(name => new Metadata
-{
-  DataSources = new[]
-  {
-    new DataSource {
-      Key = "W",
-      DataProviderFullName = typeof(DataProvider).FullName
-    }
-  },
-  Labels = new Labels { },
-  Layout = new Layout { Content = "{'_dataSource':'W', 'data':[]}" }
-}));
+var generator = new Generator(new BasicMetadataProvider(name => 
+	new Metadata
+		{
+		  DataSources = new[]
+		  {
+			new DataSource {
+			  Key = "W",
+			  DataProviderFullName = typeof(DataProvider).FullName
+			}
+		  },
+		  Labels = new Labels { },
+		  Layout = new Layout { Content = "{'_dataSource':'W', 'data':[]}" }
+		}));
 var generatedJson = generator.Generate("MyMetadata");
 ```
 The output will be 
@@ -47,7 +48,8 @@ var metadataProvider = new BasicMetadataProvider(name => new Metadata
     }
   },
   Labels = new Labels { },
-  Layout = new Layout { Content = "{'_dataSource':'W', 'data':[{'field1': '@val', 'field2': '@val'}]}" }
+  Layout = new Layout { 
+	Content = "{'_dataSource':'W', 'data':[{'field1': '', 'field2': ''}]}" }
   }
 );
 
@@ -76,6 +78,7 @@ public void Simple_Test()
 }
   }
 ```
+<br><br>
 
 ## Metadata:
 Metadata class contains 3 main components: Layout, Datasources and Labels
@@ -95,18 +98,56 @@ Another important part of Metadata is Datasources which is an array of **Datasou
 
 ### IDataProvider
 This interface must be implemented by any data provider and has one simple method GetData which returns an IEnumerable of dynamic.
+```csharp
+public interface IDataProvider
+{
+    Task<IEnumerable<dynamic>> GetDataAsync();
+}
+```
 There is a DbDataProvider in JsonGen.Db project which can be used on the databases. 
 
 ## Labels
 To ba added
 
+<br><br>
+
 # Sepcial features
-## filtering
-For filtering, Generate method can accept one of these 2 optional parameters: **predicate** or **filters**. **predicate** is a condition which can filter the datasource rows. On the other hand **filters** parameter is used for database sources and basically is a list of **Filter** objects which have _name_, _value_ and optionally _operator_. 
+## Filtering
+For filtering, **Generate** method can accept one of these 2 optional parameters: **predicate** or **filters**. **predicate** is a condition which can filter the datasource rows. On the other hand **filters** parameter is used for database sources and basically is a list of **Filter** objects which have _name_, _value_ and optionally _operator_. 
 
 **note** : to use the **predicate** the data provider should be implementing **IFilterableDataProvider** and for using **filters** it should be implementing **IDbDataProvider**. 
 
-### excluding from filtering
+## Sample
+```csharp
+var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+{
+    Layout = new Layout { 
+       Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" 
+    },
+    Labels = new Labels(),
+    DataSources = new[]
+    {
+        new DataSource {
+            Key = "A",
+            DataProviderFullName = typeof(DbDataProvider).FullName,
+            DbConnection = new SqlConnection(connStr),
+            Query = "Select * from TestTable",
+        }
+    }
+});
+
+var generator = new Generator(metadataProvider);
+var json = await generator.GenerateAsync("myMeta", 
+	filters: new[] 
+		{ new Filter { FieldName = "Id", Value = 1 } }
+	);
+```
+The output would be:
+```json
+{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }]}
+```
+
+### Excluding from filtering
 When there are multiple data sources used in one layout and some of them shouldn't be filtered that data source can use DatasourceOptions of ApplyFilter = false.
 
 ```csharp
@@ -120,5 +161,71 @@ new DataSource {
 
 ```
 
+
+## Scalar
+The data provider can be retunring scalar values instead of a list of data. For these scenarios the **DataProvider** should be implementing **IScalarDataProvider**. 
+
+```csharp
+public interface IScalarDataProvider: IDataProvider
+{
+    Task<dynamic> GetScalarDataAsync();
+}
+```
+For data sources connecting to databases **ScalarDbDataProvider** can be used.
+
+## Sample:
+```csharp
+var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+{
+    Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+    Labels = new Labels(),
+    DataSources = new[]
+    {
+        new DataSource {
+            Key = "A",
+            DataProviderFullName = typeof(ScalarDbDataProvider).FullName,
+            DbConnection = new SqlConnection(connStr),
+            Query = "Select Max(Id) from TestTable",
+        }
+    }
+});
+
+var generator = new Generator(metadataProvider);
+```
+The ouput would be 
+```json
+{'_dataSource': 'A', 'data': 2 }
+```
+
+### note: 
+Althouth the result of scaler is not going to be as an array but the definition should still be in [ ]. 
+
 ## parameters
-The other parameter which can be passed to the Generate method is **parameters** which is simply a dictionary of named objects. 
+The other parameter which can be passed to the Generate method is **parameters** which is simply a dictionary of named objects. Based on these parameters, the data source could be switched at run time.
+
+## sample
+```csharp
+var basicMetadataProvider = new BasicMetadataProvider(_ => 
+    new Metadata
+    {
+      Labels = new Labels(),
+      Layout = new Layout { Content = "{'_dataSource':'ds_[p]', 'data':[]}" },
+      DataSources = new[]
+        {
+          new DataSource { Key = "ds_A", DataProviderFullName = typeof(DataProviderA).FullName },
+          new DataSource { Key = "ds_B", DataProviderFullName = typeof(DataProviderB).FullName },
+		}
+	});
+
+var generator = new Generator(basicMetadataProvider);
+var json = generator.Generate(
+    "MetadataName", 
+    parameters: new Dictionary<string, dynamic> { { "p", "B" } }
+);
+
+```
+At run time the parameter **p** would be changed with its value of **B** therefore datasource **ds_B** would be used:
+
+```json
+{'_dataSource':'ds_[p]', 'data':[4, 5, 6]}
+```
