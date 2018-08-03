@@ -39,7 +39,7 @@ namespace JsonGen
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
                 jLayout.SelectTokens("$..*")
-                        .Where(jt => ((jt.Type == JTokenType.Array) || (jt.Type == JTokenType.Object)) &&
+                        .Where(jt => (jt.Type == JTokenType.Array) &&
                                      jt.Parent?.Parent is JObject &&
                                     (jt.Parent?.Parent as JObject).Children()
                                         .Any(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
@@ -85,7 +85,7 @@ namespace JsonGen
                 // values will be used for an array element like data: [x, y]
                 var values = vs.Where(f => f is JValue).ToList();
 
-                (dataToken as JArray).RemoveAll();
+                (dataToken as JContainer)?.RemoveAll();
 
                 IEnumerable<dynamic> data = await GetData(predicate, filters, dataProviderType, dataSource);
 
