@@ -130,6 +130,7 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
+
 #if DEBUG
         [Fact]
 #else
@@ -158,6 +159,67 @@ namespace JsonGen.Db.Tests
             json.Should().NotBeNull();
             var actual = JObject.Parse(json);
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_replace_scalar_values()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(ScalarDbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select Max(Id) from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta");
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': 2 }");
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_replace_scalar_values_with_filter()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(ScalarDbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select Max(Id) from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] { new Filter { FieldName = "Id", Value = 1 } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': 1 }");
             actual.Should().BeEquivalentTo(expected);
         }
     }

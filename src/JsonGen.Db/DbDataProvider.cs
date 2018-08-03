@@ -10,9 +10,9 @@ namespace JsonGen.Db
 {
     public class DbDataProvider : IDbDataProvider
     {
-        private IDbConnection dbConnection;
-        private string query;
-        private Dictionary<Operators, string> dbOperators = new Dictionary<Operators, string>
+        protected IDbConnection dbConnection;
+        protected string query;
+        internal Dictionary<Operators, string> dbOperators = new Dictionary<Operators, string>
         {
             { Operators.Eq, "=" },
             { Operators.G, ">" },
@@ -42,7 +42,7 @@ namespace JsonGen.Db
             }
         }
 
-        public async Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters)
+        protected void ApplyFilters(Filter[] filters)
         {
             if (filters.Any())
             {
@@ -58,6 +58,11 @@ namespace JsonGen.Db
                     }
                 }
             }
+        }
+
+        public async Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters)
+        {
+            ApplyFilters(filters);
             return (await dbConnection.QueryAsync(this.query));
         }
 
