@@ -13,7 +13,9 @@
             // Greater than or equal to
             GE,
             // Less than or equal to
-            LE
+            LE,
+            // In a set values. Value should be an array
+            In
         }
         public string FieldName { get; set; }
 

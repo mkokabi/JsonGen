@@ -19,6 +19,7 @@ namespace JsonGen.Db
             { Operators.L, "<" },
             { Operators.GE, ">=" },
             { Operators.LE, "<=" },
+            { Operators.In, "in" },
         };
 
         public IDbConnection DbConnection { get => dbConnection; set => dbConnection = value; }
@@ -50,7 +51,27 @@ namespace JsonGen.Db
 
                 foreach (var filter in filters)
                 {
-                    string quotedValue = Quote(filter.Value);
+                    string quotedValue = string.Empty;
+
+                    if (filter.Operator == Operators.In)
+                    {
+                        if (filter.Value.GetType().IsArray)
+                        {
+                            foreach (var item in filter.Value)
+                            {
+                                quotedValue += Quote(item) + ",";
+                            }
+                            quotedValue = $"({quotedValue.TrimEnd(',')})";
+                        }
+                        else
+                        {
+                            throw new GenerateException("The type of filter values should be an array.");
+                        }
+                    }
+                    else
+                    {
+                        quotedValue = Quote(filter.Value);
+                    }
                     query += $"{filter.FieldName} {dbOperators[filter.Operator]} {quotedValue}";
                     if (filter != filters.Last())
                     {

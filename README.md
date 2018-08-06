@@ -117,6 +117,14 @@ For filtering, **Generate** method can accept one of these 2 optional parameters
 
 **note** : to use the **predicate** the data provider should be implementing **IFilterableDataProvider** and for using **filters** it should be implementing **IDbDataProvider**. 
 
+Supported filter operators are:
+* **Eq**: Equals
+* **G**: Greater than
+* **L**: Less than
+* **GE**: Greater than or equal to
+* **LE**: Less than or equal to
+* **In**: In a set values. Value should be an array
+
 ## Sample
 ```csharp
 var metadataProvider = new BasicMetadataProvider(_ => new Metadata

@@ -222,5 +222,105 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': 1 }");
             actual.Should().BeEquivalentTo(expected);
         }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_return_filtered_by_in_operator_on_integers()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] {
+                new Filter {
+                    FieldName = "Id",
+                    Value = new [] { 1, 2 },
+                    Operator = Filter.Operators.In
+                } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_return_filtered_by_in_operator_on_strings()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] {
+                new Filter {
+                    FieldName = "Name",
+                    Value = new [] { "AK" },
+                    Operator = Filter.Operators.In
+                } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'AK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public void DbGenerator_should_throw_exception_if_filter_operator_is_in_but_value_is_not_array()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            generator.Invoking(g => generator.GenerateAsync("myMeta", filters: new[] {
+                new Filter {
+                    FieldName = "Id",
+                    Value = 1,
+                    Operator = Filter.Operators.In
+                } }).Wait()).Should().Throw<GenerateException>();
+        }
     }
 }
