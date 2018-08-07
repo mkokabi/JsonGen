@@ -40,11 +40,11 @@ namespace JsonGen
             var dataTokens =
                 jLayout.SelectTokens("$..*")
                         .Where(jt => (jt.Type == JTokenType.Array) &&
-                                     jt.Parent?.Parent is JObject &&
-                                    (jt.Parent?.Parent as JObject).Children()
-                                        .Any(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
-                                                        .Equals(dataSourceNode, 
-                                                            StringComparison.InvariantCultureIgnoreCase)));
+                                     (jt.Parent?.Previous != null) &&
+                                     (jt.Parent.Previous.Type == JTokenType.Property) &&
+                                     (jt.Parent.Previous as JProperty).Name
+                                                        .Equals(dataSourceNode,
+                                                            StringComparison.InvariantCultureIgnoreCase));
 
             foreach (var dataToken in dataTokens.ToList())
             {

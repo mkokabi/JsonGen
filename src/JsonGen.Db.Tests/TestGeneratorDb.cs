@@ -322,5 +322,72 @@ namespace JsonGen.Db.Tests
                     Operator = Filter.Operators.In
                 } }).Wait()).Should().Throw<GenerateException>();
         }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_support_multiple_level_datasources()
+        {
+            var layoutStr = @"{
+	'parent': {
+		'node': {
+			'_dataSource': 'A',
+			'data': ['Name'],
+			'series': [{
+				'name': 'some name',
+				'type': 'some type',
+				'_dataSource': 'B',
+				'data': ['NameA']}
+				]
+		}		
+	}
+}
+";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = layoutStr },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select Name from TestTable",
+                    },
+                    new DataSource
+                    {
+                        Key = "B",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select NameA, NameB from AnotherTestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta");
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expectedjsonStr = @"{
+	'parent': {
+		'node': {
+			'_dataSource': 'A',
+			'data': ['MK', 'AK'],
+			'series': [{
+				'name': 'some name',
+				'type': 'some type',
+				'_dataSource': 'B',
+				'data': ['MK', 'AK', 'DK']}
+				]
+		}		
+	}
+}
+";
+            var expected = JObject.Parse(expectedjsonStr);
+            actual.Should().BeEquivalentTo(expected);
+        }
     }
 }
