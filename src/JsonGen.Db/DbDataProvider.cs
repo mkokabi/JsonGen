@@ -23,12 +23,25 @@ namespace JsonGen.Db
             { Operators.In, "in" },
         };
 
+        private const string ExecRegex = @"^\s*Exec\s*";
         public IDbConnection DbConnection { get => dbConnection; set => dbConnection = value; }
-        public string Query { get => query; set => query = value; }
+        public string Query
+        {
+            get => query;
+            set
+            {
+                query = value;
+                this.CommandType = 
+                    Regex.IsMatch(this.Query, ExecRegex, RegexOptions.IgnoreCase) ?
+                    CommandType.StoredProcedure : CommandType.Text;
+            }
+        }
+
+        private CommandType CommandType = CommandType.Text;
 
         public async Task<IEnumerable<dynamic>> GetDataAsync()
         {
-            return await dbConnection.QueryAsync(this.query);
+            return await dbConnection.QueryAsync(this.query, commandType: this.CommandType);
         }
 
         public async Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate)
@@ -92,8 +105,24 @@ namespace JsonGen.Db
 
         public async Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters)
         {
-            ApplyFilters(filters);
-            return (await dbConnection.QueryAsync(this.query));
+            if (CommandType == CommandType.StoredProcedure)
+            {
+                DynamicParameters @params = AddFiltersAsParameters(filters);
+                this.query = Regex.Replace(this.Query, ExecRegex, string.Empty, RegexOptions.IgnoreCase);
+                return (await dbConnection.QueryAsync(this.query, param: @params, commandType: this.CommandType));
+            }
+            else
+            {
+                ApplyFilters(filters);
+                return (await dbConnection.QueryAsync(this.query, commandType: this.CommandType));
+            }
+        }
+
+        private DynamicParameters AddFiltersAsParameters(Filter[] filters)
+        {
+            var ps = new DynamicParameters();
+            filters.ToList().ForEach(f => ps.Add(f.FieldName, f.Value));
+            return ps;
         }
 
         private string Quote(dynamic value)
