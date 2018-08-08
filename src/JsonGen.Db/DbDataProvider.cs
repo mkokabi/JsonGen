@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static JsonGen.Filter;
 
@@ -47,6 +48,13 @@ namespace JsonGen.Db
         {
             if (filters.Any())
             {
+                var groupBy = string.Empty;
+                var groupByMatch = Regex.Match(query, @"group\s*by", RegexOptions.IgnoreCase);
+                if (groupByMatch.Success)
+                {
+                    groupBy = query.Substring(groupByMatch.Index - 1);
+                    query = query.Substring(0, groupByMatch.Index);
+                }
                 query += query.ToUpper().Contains("WHERE") ? " and " : " where ";
 
                 foreach (var filter in filters)
@@ -78,6 +86,7 @@ namespace JsonGen.Db
                         query += " and ";
                     }
                 }
+                query += groupBy;
             }
         }
 

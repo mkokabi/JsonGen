@@ -424,5 +424,39 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'NameA': 'AK' }, { 'NameA': 'DK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_put_the_where_before_groupby()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'Name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select Name from TestTable Group by Name",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] {
+                new Filter {
+                    FieldName = "Id",
+                    Value = 1,
+                } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' } ]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
     }
 }
