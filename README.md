@@ -112,6 +112,7 @@ To ba added
 <br><br>
 
 # Sepcial features
+
 ## Filtering
 For filtering, **Generate** method can accept one of these 2 optional parameters: **predicate** or **filters**. **predicate** is a condition which can filter the datasource rows. On the other hand **filters** parameter is used for database sources and basically is a list of **Filter** objects which have _name_, _value_ and optionally _operator_. 
 
@@ -169,6 +170,48 @@ new DataSource {
 
 ```
 
+## Stored procedures
+For calling stored procedure instead of query should start with **Exec** (case insensitive).
+In this case, filters would be passed as parameters to the stored procedure:
+
+## Sample
+```sql
+CREATE PROCEDURE [dbo].[TestProc]
+	@param1 int = 0,
+	@param2 VARCHAR(10)
+AS
+	SELECT * FROM dbo.TestTable WHERE Id = @param1 OR Name = @param2
+RETURN 0
+```
+<br>
+
+```csharp
+var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+{
+  Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'Name': 'X' }]}" },
+  Labels = new Labels(),
+  DataSources = new[]
+  {
+    new DataSource {
+      Key = "A",
+      DataProviderFullName = typeof(DbDataProvider).FullName,
+      DbConnection = new SqlConnection(connStr),
+      Query = " eXec TestProc",
+    }
+  }
+});
+
+var generator = new Generator(metadataProvider);
+var json = await generator.GenerateAsync("myMeta", filters: new[] {
+  new Filter {
+    FieldName = "param1",
+    Value = 1,
+  },
+  new Filter {
+    FieldName = "param2",
+    Value = "AK",
+  }});
+```
 
 ## Scalar
 The data provider can be retunring scalar values instead of a list of data. For these scenarios the **DataProvider** should be implementing **IScalarDataProvider**. 
