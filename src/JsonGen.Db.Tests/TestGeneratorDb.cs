@@ -389,5 +389,40 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse(expectedjsonStr);
             actual.Should().BeEquivalentTo(expected);
         }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_return_filtered_on_date_fields()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'NameA': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from AnotherTestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", filters: new[] {
+                new Filter {
+                    FieldName = "DOB",
+                    Value = new DateTime(2018, 2, 1),
+                    Operator = Filter.Operators.G
+                } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'NameA': 'AK' }, { 'NameA': 'DK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
     }
 }

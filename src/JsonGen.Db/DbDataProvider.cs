@@ -93,6 +93,10 @@ namespace JsonGen.Db
             {
                 return $"'{value}'";
             }
+            else if (value.GetType() == typeof(DateTime))
+            {
+                return $"convert(date, '{value.ToString("u")}', 127)";
+            }
             return value.ToString();
         }
     }
