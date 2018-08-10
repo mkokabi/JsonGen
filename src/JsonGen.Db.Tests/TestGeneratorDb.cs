@@ -172,7 +172,7 @@ namespace JsonGen.Db.Tests
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
             {
-                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': 'x' }" },
                 Labels = new Labels(),
                 DataSources = new[]
                 {
@@ -202,7 +202,7 @@ namespace JsonGen.Db.Tests
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
             {
-                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': 'x' }" },
                 Labels = new Labels(),
                 DataSources = new[]
                 {

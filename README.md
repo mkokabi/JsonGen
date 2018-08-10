@@ -228,7 +228,7 @@ For data sources connecting to databases **ScalarDbDataProvider** can be used.
 ```csharp
 var metadataProvider = new BasicMetadataProvider(_ => new Metadata
 {
-    Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ 'x' ]}" },
+    Layout = new Layout { Content = "{'_dataSource': 'A', 'data': 'x' }" },
     Labels = new Labels(),
     DataSources = new[]
     {
@@ -247,9 +247,6 @@ The ouput would be
 ```
 {'_dataSource': 'A', 'data': 2 }
 ```
-
-### note: 
-Althouth the result of scaler is not going to be as an array but the definition should still be in [ ]. 
 
 ## parameters
 The other parameter which can be passed to the Generate method is **parameters** which is simply a dictionary of named objects. Based on these parameters, the data source could be switched at run time.

@@ -39,7 +39,7 @@ namespace JsonGen
             JObject jLayout = JObject.Parse(layout.Content);
             var dataTokens =
                 jLayout.SelectTokens("$..*")
-                        .Where(jt => (jt.Type == JTokenType.Array) &&
+                        .Where(jt => //(jt.Type == JTokenType.Array) &&
                                      (jt.Parent?.Previous != null) &&
                                      (jt.Parent.Previous.Type == JTokenType.Property) &&
                                      (jt.Parent.Previous as JProperty).Name
@@ -72,7 +72,7 @@ namespace JsonGen
 
                 if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    await ApplyScalar((JArray)dataToken, dataProviderType, filters, dataSource);
+                    await ApplyScalar((JValue)dataToken, dataProviderType, filters, dataSource);
                     continue;
                 }
 
@@ -138,11 +138,11 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
-        private async Task ApplyScalar(JArray jArray, Type dataProviderType, 
+        private async Task ApplyScalar(JValue jValue, Type dataProviderType, 
             Filter[] filters, DataSource dataSource)
         {
             dynamic data = await GetScalarData(filters, dataProviderType, dataSource);
-            (jArray.Parent as JProperty).Value = new JValue(data);
+            (jValue.Parent as JProperty).Value = new JValue(data);
         }
 
         private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
