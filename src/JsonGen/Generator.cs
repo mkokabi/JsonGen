@@ -142,7 +142,7 @@ namespace JsonGen
             Filter[] filters, DataSource dataSource)
         {
             dynamic data = await GetScalarData(filters, dataProviderType, dataSource);
-            (jValue.Parent as JProperty).Value = new JValue(data);
+            (jValue.Parent as JProperty).Value = data == null ? null : new JValue(data);
         }
 
         private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
