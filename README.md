@@ -169,6 +169,12 @@ new DataSource {
 }
 
 ```
+In more specific cases, a set of filters based on their key can be ignored:
+```csharp
+Options = new DatasourceOptions { 
+    IgnoreFilteringOn = new [] { "id", "Name" } 
+}
+```
 
 ## Stored procedures
 For calling stored procedure instead of query should start with **Exec** (case insensitive).

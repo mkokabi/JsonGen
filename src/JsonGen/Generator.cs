@@ -69,10 +69,11 @@ namespace JsonGen
                 {
                     continue;
                 }
-
+                
                 if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    await ApplyScalar((JValue)dataToken, dataProviderType, filters, dataSource);
+                    await ApplyScalar((JValue)dataToken, dataProviderType,
+                        ApplyOptions(dataSource.Options, filters), dataSource);
                     continue;
                 }
 
@@ -87,7 +88,9 @@ namespace JsonGen
 
                 (dataToken as JContainer)?.RemoveAll();
 
-                IEnumerable<dynamic> data = await GetData(predicate, filters, dataProviderType, dataSource);
+                IEnumerable<dynamic> data = await GetData(
+                    ApplyOptions(dataSource.Options, predicate),
+                    ApplyOptions(dataSource.Options, filters), dataProviderType, dataSource);
 
                 List<string> keysToBeRemoved = null;
                 data?.ToList().ForEach(row =>
@@ -138,6 +141,31 @@ namespace JsonGen
             return jLayout.ToString();
         }
 
+        private Func<dynamic, bool> ApplyOptions(DatasourceOptions options, Func<dynamic, bool> predicate)
+        {
+            if (options?.ApplyFilter == false)
+            {
+                return null;
+            }
+            return predicate;
+        }
+
+        private Filter[] ApplyOptions(DatasourceOptions options, Filter[] filters)
+        {
+            if (options?.ApplyFilter == false)
+            {
+                return null;
+            }
+            if (options?.IgnoreFilteringOn != null)
+            {
+                return filters?.Where(f => 
+                    !options.IgnoreFilteringOn.Any(oif => 
+                        oif.Equals(f.FieldName, StringComparison.InvariantCultureIgnoreCase)))
+                        .ToArray();
+            }
+            return filters;
+        }
+
         private async Task ApplyScalar(JValue jValue, Type dataProviderType, 
             Filter[] filters, DataSource dataSource)
         {
@@ -157,10 +185,6 @@ namespace JsonGen
         private async Task<dynamic> GetScalarData(Filter[] filters, Type dataProviderType, DataSource dataSource)
         {
             dynamic data = null;
-            if (dataSource.Options?.ApplyFilter == false)
-            {
-                filters = null;
-            }
 
             if (typeof(IScalarDbDataProvider).IsAssignableFrom(dataProviderType))
             {
@@ -191,11 +215,6 @@ namespace JsonGen
         private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
         {
             IEnumerable<dynamic> data = null;
-            if (dataSource.Options?.ApplyFilter == false)
-            {
-                predicate = null;
-                filters = null;
-            }
 
             if (typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
             {

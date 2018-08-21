@@ -241,7 +241,9 @@ namespace JsonGenTestProject
                 Layout = new JsonGen.Layout { Content = "{'node1':{'_dataSource':'C', 'data':[{'x':''}]},'node2':{'_dataSource':'D', 'data':[{'x':''}]}}" },
                 DataSources = new[] { 
                     new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "C" },
-                    new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "D", Options = new DatasourceOptions {ApplyFilter = false } }
+                    new DataSource { DataProviderFullName = typeof(DataProviderC).FullName, Key = "D",
+                        Options = new DatasourceOptions {ApplyFilter = false }
+                    }
                 }
             });
             var generator = new Generator(metadataProvider);
