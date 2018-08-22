@@ -41,19 +41,33 @@ namespace JsonGen.Db
 
         public async Task<IEnumerable<dynamic>> GetDataAsync()
         {
-            return await dbConnection.QueryAsync(this.query, commandType: this.CommandType);
+            try
+            {
+                return await dbConnection.QueryAsync(this.query, commandType: this.CommandType);
+            }
+            catch (Exception exc)
+            {
+                throw new DbGenerateException(this.query, exc);
+            }
         }
 
         public async Task<IEnumerable<dynamic>> GetDataAsync(Func<dynamic, bool> predicate)
         {
-            var query = await dbConnection.QueryAsync(this.query);
-            if (predicate != null)
+            try
             {
-                return query.Where(predicate);
+                var query = await dbConnection.QueryAsync(this.query);
+                if (predicate != null)
+                {
+                    return query.Where(predicate);
+                }
+                else
+                {
+                    return query;
+                }
             }
-            else
+            catch (Exception exc)
             {
-                return query;
+                throw new DbGenerateException(this.query, exc);
             }
         }
 
@@ -105,16 +119,23 @@ namespace JsonGen.Db
 
         public async Task<IEnumerable<dynamic>> GetDataAsync(Filter[] filters)
         {
-            if (CommandType == CommandType.StoredProcedure)
+            try
             {
-                DynamicParameters @params = AddFiltersAsParameters(filters);
-                this.query = Regex.Replace(this.Query, ExecRegex, string.Empty, RegexOptions.IgnoreCase);
-                return (await dbConnection.QueryAsync(this.query, param: @params, commandType: this.CommandType));
+                if (CommandType == CommandType.StoredProcedure)
+                {
+                    DynamicParameters @params = AddFiltersAsParameters(filters);
+                    this.query = Regex.Replace(this.Query, ExecRegex, string.Empty, RegexOptions.IgnoreCase);
+                    return (await dbConnection.QueryAsync(this.query, param: @params, commandType: this.CommandType));
+                }
+                else
+                {
+                    ApplyFilters(filters);
+                    return (await dbConnection.QueryAsync(this.query, commandType: this.CommandType));
+                }
             }
-            else
+            catch (Exception exc)
             {
-                ApplyFilters(filters);
-                return (await dbConnection.QueryAsync(this.query, commandType: this.CommandType));
+                throw new DbGenerateException(this.query, exc);
             }
         }
 

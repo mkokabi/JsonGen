@@ -72,9 +72,16 @@ namespace JsonGen
                 
                 if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
-                    await ApplyScalar((JValue)dataToken, dataProviderType,
-                        ApplyOptions(dataSource.Options, filters), dataSource);
-                    continue;
+                    if (dataToken is JValue)
+                    {
+                        await ApplyScalar((JValue)dataToken, dataProviderType,
+                            ApplyOptions(dataSource.Options, filters), dataSource);
+                        continue;
+                    }
+                    else
+                    {
+                        throw new GenerateException("ScalarDataProvider needs a value.");
+                    }
                 }
 
                 var vs = dataToken.Values();

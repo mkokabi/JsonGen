@@ -106,6 +106,92 @@ namespace JsonGen.Db.Tests
 #else
         [Fact(Skip = "Needs the local db")]
 #endif
+        public void DbGenerator_should_throw_exception_showing_invalid_sql()
+        {
+            var invalidSql = "Select * from InvalidTable";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = invalidSql,
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            generator.Invoking(g => generator.GenerateAsync("myMeta").Wait())
+                .Should().Throw<DbGenerateException>()
+                .Where(exc => exc.Query == invalidSql && exc.InnerException is SqlException);
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public void DbGenerator_scalar_should_throw_exception_showing_invalid_sql()
+        {
+            var invalidSql = "Select max(id) from InvalidTable";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = invalidSql,
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            generator.Invoking(g => generator.GenerateAsync("myMeta").Wait())
+                .Should().Throw<DbGenerateException>()
+                .Where(exc => exc.Query == invalidSql && exc.InnerException is SqlException);
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public void DbGenerator_scalar_with_select_query_should_throw_exception()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(ScalarDbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from Table"
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            generator.Invoking(g => generator.GenerateAsync("myMeta").Wait())
+                .Should().Throw<GenerateException>()
+                .Where(exc => exc.Message == "ScalarDataProvider needs a value.");
+        }
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
         public async Task DbGenerator_should_return_filtered_data_from_db()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -229,6 +315,7 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
+
 #if DEBUG
         [Fact]
 #else

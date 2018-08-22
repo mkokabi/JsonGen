@@ -1,5 +1,5 @@
 ﻿using Dapper;
-
+using System;
 using System.Threading.Tasks;
 
 namespace JsonGen.Db
@@ -9,19 +9,40 @@ namespace JsonGen.Db
     {        
         public async Task<dynamic> GetScalarAsync()
         {
-            return (await dbConnection.ExecuteScalarAsync(this.query));
+            try
+            {
+                return (await dbConnection.ExecuteScalarAsync(this.query));
+            }
+            catch (Exception exc)
+            {
+                throw new DbGenerateException(this.query, exc);
+            }
         }
 
 
         public async Task<dynamic> GetScalarDataAsync(Filter[] filters)
         {
-            ApplyFilters(filters);
-            return (await dbConnection.ExecuteScalarAsync(this.query));
+            try
+            {
+                ApplyFilters(filters);
+                return (await dbConnection.ExecuteScalarAsync(this.query));
+            }
+            catch (Exception exc)
+            {
+                throw new DbGenerateException(this.query, exc);
+            }
         }
 
         public async Task<dynamic> GetScalarDataAsync()
         {
-            return (await dbConnection.ExecuteScalarAsync(this.query));
+            try
+            {
+                return (await dbConnection.ExecuteScalarAsync(this.query));
+            }
+            catch (Exception exc)
+            {
+                throw new DbGenerateException(this.query, exc);
+            }
         }
     }
 }
