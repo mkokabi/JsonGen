@@ -74,8 +74,10 @@ namespace JsonGen
                 {
                     if (dataToken is JValue)
                     {
-                        await ApplyScalar((JValue)dataToken, dataProviderType,
-                            ApplyOptions(dataSource.Options, filters), dataSource);
+                        dynamic scalarData = await GetScalarData(ApplyOptions(dataSource.Options, filters),
+                            dataProviderType, dataSource);
+
+                        (dataToken as JValue).Value = scalarData;
                         continue;
                     }
                     else
@@ -171,13 +173,6 @@ namespace JsonGen
                         .ToArray();
             }
             return filters;
-        }
-
-        private async Task ApplyScalar(JValue jValue, Type dataProviderType, 
-            Filter[] filters, DataSource dataSource)
-        {
-            dynamic data = await GetScalarData(filters, dataProviderType, dataSource);
-            (jValue.Parent as JProperty).Value = data == null ? null : new JValue(data);
         }
 
         private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)

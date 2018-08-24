@@ -164,6 +164,48 @@ namespace JsonGen.Db.Tests
 #else
         [Fact(Skip = "Needs the local db")]
 #endif
+        public void DbGenerator_scalar_should_get_scalar_values_in_second_level()
+        {
+            var layout = @"{
+            'criteria': {
+                'filters': {
+                    '_dataSource': 'S',
+			        'data': 'reportperiod'
+                    }
+                }
+            } ";
+            {
+                var sql = "Select max(id) from TestTable";
+                var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+                {
+                    Layout = new Layout { Content = layout },
+                    Labels = new Labels(),
+                    DataSources = new[]
+                    {
+                    new DataSource {
+                        Key = "S",
+                        DataProviderFullName = typeof(ScalarDbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = sql,
+                    }
+                }
+                });
+                var generator = new Generator(metadataProvider);
+                var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
+                json.Should().NotBeNull();
+                var actual = JObject.Parse(json);
+                var expected = JObject.Parse("{'criteria':{'filters':{'_dataSource':'S', 'data':2 }}}");
+                actual.Should().BeEquivalentTo(expected);
+
+            }
+        }
+
+
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
         public void DbGenerator_scalar_with_select_query_should_throw_exception()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
