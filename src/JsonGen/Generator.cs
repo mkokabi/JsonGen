@@ -43,14 +43,14 @@ namespace JsonGen
                                      (jt.Parent?.Previous != null) &&
                                      (jt.Parent.Previous.Type == JTokenType.Property) &&
                                      (jt.Parent.Previous as JProperty).Name
-                                                        .Equals(dataSourceNode,
+                                                        .StartsWith(dataSourceNode,
                                                             StringComparison.InvariantCultureIgnoreCase));
 
             foreach (var dataToken in dataTokens.ToList())
             {
                 var dataSourceName = ((dataToken.Parent.Parent as JObject).Children()
                                         .First(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
-                                        .Equals(dataSourceNode, StringComparison.InvariantCultureIgnoreCase))
+                                        .StartsWith(dataSourceNode, StringComparison.InvariantCultureIgnoreCase))
                                         as JProperty).Value.ToString();
 
                 if (parameters != null && parameters.Any())

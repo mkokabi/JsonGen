@@ -298,5 +298,35 @@ namespace JsonGenTestProject
             actual.Should().BeEquivalentTo(expected);
 
         }
+
+        [TestMethod]
+        public void Generator_should_accept_nodes_sarts_with_datasource()
+        {
+            var layout = @"{
+            'criteria': {
+                'filters': {
+                    '_dataSource_A': 'S',
+			        'data': 'reportperiod'
+                    }
+                }
+            } ";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new JsonGen.Layout { Content = layout },
+                DataSources = new[] {
+                    new DataSource { DataProviderFullName = typeof(ScalarDataProvider).FullName,
+                        Key = "S"
+                    }
+                }
+            });
+            var generator = new Generator(metadataProvider);
+            var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = 
+                JObject.Parse("{'criteria':{'filters':{'_dataSource_A':'S', 'data':1 }}}");
+            actual.Should().BeEquivalentTo(expected);
+
+        }
     }
 }
