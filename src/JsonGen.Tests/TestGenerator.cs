@@ -173,8 +173,18 @@ namespace JsonGenTestProject
                 throw new System.NotImplementedException();
             }
 
-            public async Task<dynamic> GetScalarDataAsync() => await Task.FromResult(1);
-           
+            public async Task<dynamic> GetScalarDataAsync() => await Task.FromResult(1);           
+        }
+
+        public class TScalarDataProvider : IScalarDataProvider
+        {
+            public Task<IEnumerable<dynamic>> GetDataAsync()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public async Task<dynamic> GetScalarDataAsync() => await Task.FromResult(2);
+
         }
 
         [TestMethod]
@@ -306,7 +316,9 @@ namespace JsonGenTestProject
             'criteria': {
                 'filters': {
                     '_dataSource_A': 'S',
-			        'data': 'reportperiod'
+                    'data_a': 'reportperiod',
+                    '_dataSource_B': 'T',
+                    'data_b': 'reportperiod'
                     }
                 }
             } ";
@@ -316,6 +328,9 @@ namespace JsonGenTestProject
                 DataSources = new[] {
                     new DataSource { DataProviderFullName = typeof(ScalarDataProvider).FullName,
                         Key = "S"
+                    },
+                    new DataSource { DataProviderFullName = typeof(TScalarDataProvider).FullName,
+                        Key = "T"
                     }
                 }
             });
@@ -324,7 +339,7 @@ namespace JsonGenTestProject
             json.Should().NotBeNull();
             var actual = JObject.Parse(json);
             var expected = 
-                JObject.Parse("{'criteria':{'filters':{'_dataSource_A':'S', 'data':1 }}}");
+                JObject.Parse("{'criteria':{'filters':{'_dataSource_A':'S', 'data_a':1, '_dataSource_B':'T', 'data_b':2  }}}");
             actual.Should().BeEquivalentTo(expected);
 
         }

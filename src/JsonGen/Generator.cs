@@ -37,21 +37,15 @@ namespace JsonGen
             
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
-            var dataTokens =
-                jLayout.SelectTokens("$..*")
-                        .Where(jt => //(jt.Type == JTokenType.Array) &&
-                                     (jt.Parent?.Previous != null) &&
+
+            foreach (var dataToken in jLayout.SelectTokens("$..*")
+                        .Where(jt => (jt.Parent?.Previous != null) &&
                                      (jt.Parent.Previous.Type == JTokenType.Property) &&
                                      (jt.Parent.Previous as JProperty).Name
                                                         .StartsWith(dataSourceNode,
-                                                            StringComparison.InvariantCultureIgnoreCase));
-
-            foreach (var dataToken in dataTokens.ToList())
+                                                            StringComparison.InvariantCultureIgnoreCase)))
             {
-                var dataSourceName = ((dataToken.Parent.Parent as JObject).Children()
-                                        .First(child => (child.Type == JTokenType.Property) && (child as JProperty).Name
-                                        .StartsWith(dataSourceNode, StringComparison.InvariantCultureIgnoreCase))
-                                        as JProperty).Value.ToString();
+                var dataSourceName = (dataToken.Parent.Previous as JProperty).Value.ToString();
 
                 if (parameters != null && parameters.Any())
                 {
