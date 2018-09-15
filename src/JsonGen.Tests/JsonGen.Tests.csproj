@@ -105,7 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JsonGen\JsonGen.csproj">
-      <Project>{A80CC400-3BEB-4C1B-8D1D-E57C1D5F3088}</Project>
+      <Project>{24fca916-6c55-412d-8eb2-60e1a78289f4}</Project>
       <Name>JsonGen</Name>
     </ProjectReference>
   </ItemGroup>
