@@ -15,7 +15,9 @@
             // Less than or equal to
             LE,
             // In a set values. Value should be an array
-            In
+            In,
+            // Between. Value should be an array of 2 elements: Min, Max 
+            Bw
         }
         public string FieldName { get; set; }
 
