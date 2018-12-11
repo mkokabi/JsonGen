@@ -21,6 +21,7 @@ namespace JsonGen.Db
             { Operators.GE, ">=" },
             { Operators.LE, "<=" },
             { Operators.In, "in" },
+            { Operators.Bw, "Between" },
         };
 
         private const string ExecRegex = @"^\s*Exec\s*";
@@ -97,6 +98,20 @@ namespace JsonGen.Db
                                 quotedValue += Quote(item) + ",";
                             }
                             quotedValue = $"({quotedValue.TrimEnd(',')})";
+                        }
+                        else
+                        {
+                            throw new GenerateException("The type of filter values should be an array.");
+                        }
+                    }
+                    else if (filter.Operator == Operators.Bw)
+                    {
+                        Array minmax = null;
+                        if (filter.Value.GetType().IsArray && 
+                            ((minmax = filter.Value as Array) != null) &&
+                            (minmax.Length == 2))
+                        {
+                            quotedValue = $"{ Quote(minmax.GetValue(0))} and { Quote(minmax.GetValue(1)) }";
                         }
                         else
                         {
