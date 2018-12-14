@@ -2,11 +2,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452;net462;net472</TargetFrameworks>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Mohsen Kokabi</Authors>
     <Company />
     <Copyright>Copyright ©  2018</Copyright>
     <Description>A Json generator engine based on the metadata including layout and dataproviders.</Description>
+    <PackageIconUrl>https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/JSON_vector_logo.svg/160px-JSON_vector_logo.svg.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/mkokabi/JsonGen</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/mkokabi/JsonGen/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace JsonGen
@@ -49,7 +50,7 @@ namespace JsonGen
 
                 if (parameters != null && parameters.Any())
                 {
-                    dataSourceName = applyParametersOnDataSourceName(dataSourceName, parameters);
+                    dataSourceName = ApplyParametersOnDataSourceName(dataSourceName, parameters);
                 }
 
                 var dataSource = metadata.DataSources.FirstOrDefault(ds => ds.Key == dataSourceName);
@@ -169,13 +170,35 @@ namespace JsonGen
             return filters;
         }
 
-        private string applyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
+        private string ApplyParametersOnDataSourceName(string dataSourceName, Dictionary<string, dynamic> parameters)
         {
             foreach (var parameter in parameters)
             {
-                dataSourceName = dataSourceName.Replace($"[{parameter.Key}]", parameter.Value);
+                if (dataSourceName.Contains("["))
+                {
+                    dataSourceName = dataSourceName.Replace($"[{parameter.Key}]", parameter.Value);
+                }
             }
             return dataSourceName;
+        }
+
+        private string ReplaceMacrosInQuery(string query, Filter[] filters)
+        {
+            if (!query.Contains("[") || filters == null || !filters.Any())
+            {
+                return query;
+            }
+            foreach (Match match in Regex.Matches(query, @"\[.*\]"))
+            {
+                var matchTrimmed = match.Value.Trim("[]".ToCharArray());
+                var filter = filters
+                    .FirstOrDefault(f => f.FieldName.Equals(matchTrimmed, StringComparison.InvariantCultureIgnoreCase));
+                if (filter != null)
+                {
+                    query = query.Replace(match.Value, filter.Value.ToString());
+                }
+            }
+            return query;
         }
 
         private async Task<dynamic> GetScalarData(Filter[] filters, Type dataProviderType, DataSource dataSource)
@@ -186,7 +209,12 @@ namespace JsonGen
             {
                 var dbDataProvider = (IScalarDbDataProvider)Activator.CreateInstance(dataProviderType);
                 dbDataProvider.DbConnection = dataSource.DbConnection;
-                dbDataProvider.Query = dataSource.Query;
+                dbDataProvider.Query = ReplaceMacrosInQuery(dataSource.Query, filters);
+                if (dataSource.Options?.ReplaceMacrosOnly == true)
+                {
+                    filters = new Filter[] { };
+                }
+
 
                 if (filters != null)
                 {
@@ -208,7 +236,8 @@ namespace JsonGen
             return data;
         }
 
-        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, Type dataProviderType, DataSource dataSource)
+        private async Task<IEnumerable<dynamic>> GetData(Func<dynamic, bool> predicate, Filter[] filters, 
+            Type dataProviderType, DataSource dataSource)
         {
             IEnumerable<dynamic> data = null;
 
@@ -216,8 +245,12 @@ namespace JsonGen
             {
                 var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
                 dbDataProvider.DbConnection = dataSource.DbConnection;
-                dbDataProvider.Query = dataSource.Query;
-                
+                dbDataProvider.Query = ReplaceMacrosInQuery(dataSource.Query, filters);
+                if (dataSource.Options?.ReplaceMacrosOnly == true)
+                {
+                    filters = new Filter[] { };
+                }
+
                 if (filters != null)
                 {
                     data = await dbDataProvider.GetDataAsync(filters);

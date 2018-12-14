@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src",
+    "\\src\\JsonGen.Db.Tests",
+    "\\src\\JsonGen.Tests"
   ],
+  "SelectedNode": "\\src\\JsonGen.Db.Tests\\TestDbDataProvider.cs",
   "PreviewInSolutionExplorer": false
 }

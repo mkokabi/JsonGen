@@ -294,36 +294,6 @@ namespace JsonGen.Db.Tests
 #else
         [Fact(Skip = "Needs the local db")]
 #endif
-        public async Task DbGenerator_should_return_multiple_columns_data_from_db_in_different_fields()
-        {
-            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
-            {
-                Layout = new Layout { Content = "{'_dataSource': 'A', 'MaxId': 0, 'MaxName': 'X'}" },
-                Labels = new Labels(),
-                DataSources = new[]
-                {
-                    new DataSource {
-                        Key = "A",
-                        DataProviderFullName = typeof(DbDataProvider).FullName,
-                        DbConnection = new SqlConnection(connStr),
-                        Query = "Select Max(Id) as MaxId, Max(Name) as MaxName from TestTable",
-                    }
-                }
-            });
-
-            var generator = new Generator(metadataProvider);
-            var json = await generator.GenerateAsync("myMeta");
-            json.Should().NotBeNull();
-            var actual = JObject.Parse(json);
-            var expected = JObject.Parse("{'_dataSource': 'A', 'MaxId': 2, 'MaxName': 'MK' }");
-            actual.Should().BeEquivalentTo(expected);
-        }
-
-#if DEBUG
-        [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_data_from_db()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -349,6 +319,37 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
+#if DEBUG
+        [Fact]
+#else
+        [Fact(Skip = "Needs the local db")]
+#endif
+        public async Task DbGenerator_should_replace_macros_with_filtes()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'data': [ { 'name': 'X' }]}" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select * from [TableName]",
+                        Options = new DatasourceOptions { ReplaceMacrosOnly = true }
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta", 
+                filters: new[] { new Filter { FieldName = "TableName", Value = "TestTable" } });
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
+            actual.Should().BeEquivalentTo(expected);
+        }
 #if DEBUG
         [Fact]
 #else
