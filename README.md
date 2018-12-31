@@ -1,6 +1,10 @@
 # JsonGen
 A Json generator engine based on the metadata including layout and data providers defined in .Net languages. Usually, if a specific Json needs to be created based on a defined layout, developer has to create all the classes and hierarchy and then map his data to this structure, and then finally serialize his root class to get the Json. **JsonGen** is following another appraoch. The steps is: tag the Json layout with **\_datasource** and then define your datasource(s). Finally, ask **JsonGen** to generate the finall Json with the data.
 
+## Builds
+
+![Build on VSTS](https://mohsenapp.visualstudio.com/JsonGen/_apis/build/status/JsonGen-%20.NET%20Core-CI?branchName=master)
+
 ## Sample
 Let's start with the simplest form (https://dotnetfiddle.net/hNKHYQ):
 ```csharp
@@ -253,6 +257,32 @@ The ouput would be
 ```
 {'_dataSource': 'A', 'data': 2 }
 ```
+
+## replacing macros
+In scenarios where dynamic sql is neccessary to be used, the replacing keys should be specified in the [ ] and the filter options should be set to ***ReplaceMacrosOnly*** . The keys should be passed as normal filter and their value be replaced. 
+
+## sample
+```csharp
+DataSources = new[]
+  {
+    new DataSource {
+      Key = "A",
+      DataProviderFullName = typeof(DbDataProvider).FullName,
+      DbConnection = new SqlConnection(connStr),
+      Query = "Select * from [TableName]",
+      Options = new DatasourceOptions { 
+        ReplaceMacrosOnly = true 
+      }
+  }
+}
+
+var json = await generator.GenerateAsync("myMeta", 
+    filters: new[] { new Filter { FieldName = "TableName", Value = "TestTable" } });
+
+```
+
+Please note this replacement is text based only so if it's used for a string value the quotes should be set around [].
+
 
 ## parameters
 The other parameter which can be passed to the Generate method is **parameters** which is simply a dictionary of named objects. Based on these parameters, the data source could be switched at run time.
