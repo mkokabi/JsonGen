@@ -99,13 +99,13 @@ namespace JsonGen.Db.Tests
             public string Name { get; set; }
         }
 
-        const string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Work\JsonGen\src\JsonGen.Db.Tests\TestDatabase.mdf;Integrated Security=True;Connect Timeout=30";
+        #if DEBUG
+                const string connStr = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Work\JsonGen\src\JsonGen.Db.Tests\TestDatabase.mdf;Integrated Security=True;Connect Timeout=30";
+        #else
+                string connStr => Environment.GetEnvironmentVariable("connStr");
+        #endif
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_should_throw_exception_showing_invalid_sql()
         {
             var invalidSql = "Select * from InvalidTable";
@@ -130,11 +130,7 @@ namespace JsonGen.Db.Tests
                 .Where(exc => exc.Query == invalidSql && exc.InnerException is SqlException);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_scalar_should_throw_exception_showing_invalid_sql()
         {
             var invalidSql = "Select max(id) from InvalidTable";
@@ -159,11 +155,7 @@ namespace JsonGen.Db.Tests
                 .Where(exc => exc.Query == invalidSql && exc.InnerException is SqlException);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_scalar_should_get_scalar_values_in_second_level()
         {
             var layout = @"{
@@ -201,11 +193,7 @@ namespace JsonGen.Db.Tests
         }
 
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_scalar_with_select_query_should_throw_exception()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -229,11 +217,7 @@ namespace JsonGen.Db.Tests
                 .Where(exc => exc.Message == "ScalarDataProvider needs a value.");
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_multiple_columns_data_from_db()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -259,11 +243,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_multiple_columns_data_from_db_in_single_row()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -289,11 +269,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_data_from_db()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -319,11 +295,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_replace_macros_with_filtes()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -350,11 +322,8 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
-#if DEBUG
+
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_ignore_filtering_if_filteroption_is_set_to_false()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -382,11 +351,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_ignore_filtering_with_IgnoreFilteringOn()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -414,11 +379,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_ignore_filtering_with_multiple_IgnoreFilteringOn()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -449,11 +410,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_replace_scalar_values()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -479,11 +436,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_replace_scalar_values_with_filter()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -509,11 +462,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_replace_scalar_null_value()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -539,11 +488,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_by_in_operator_on_integers()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -573,11 +518,8 @@ namespace JsonGen.Db.Tests
             var expected = JObject.Parse("{'_dataSource': 'A', 'data': [ { 'Name': 'MK' }, { 'Name': 'AK' }]}");
             actual.Should().BeEquivalentTo(expected);
         }
-#if DEBUG
+
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_by_in_operator_on_strings()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -608,11 +550,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_should_throw_exception_if_filter_operator_is_in_but_value_is_not_array()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -639,12 +577,7 @@ namespace JsonGen.Db.Tests
                 } }).Wait()).Should().Throw<GenerateException>();
         }
 
-
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_by_between_operator_on_integers()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -675,11 +608,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_should_throw_exception_if_filter_operator_is_between_but_value_is_not_array()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -706,11 +635,7 @@ namespace JsonGen.Db.Tests
                 } }).Wait()).Should().Throw<GenerateException>();
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public void DbGenerator_should_throw_exception_if_filter_operator_is_between_but_value_doesnt_have_2_items()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -737,11 +662,7 @@ namespace JsonGen.Db.Tests
                 } }).Wait()).Should().Throw<GenerateException>();
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_support_multiple_level_datasources()
         {
             var layoutStr = @"{
@@ -804,11 +725,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_return_filtered_on_date_fields()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -839,11 +756,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_put_the_where_before_groupby()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
@@ -873,11 +786,7 @@ namespace JsonGen.Db.Tests
             actual.Should().BeEquivalentTo(expected);
         }
 
-#if DEBUG
         [Fact]
-#else
-        [Fact(Skip = "Needs the local db")]
-#endif
         public async Task DbGenerator_should_get_data_from_sp()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata
