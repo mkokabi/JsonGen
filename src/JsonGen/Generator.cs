@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -39,7 +40,7 @@ namespace JsonGen
             var layout = metadata.Layout;
             JObject jLayout = JObject.Parse(layout.Content);
 
-            foreach (var dataToken in jLayout.SelectTokens("$..*")
+            foreach (var dataToken in jLayout.SelectTokens("$..*").ToArray()
                         .Where(jt => (jt.Parent?.Previous != null) &&
                                      (jt.Parent.Previous.Type == JTokenType.Property) &&
                                      (jt.Parent.Previous as JProperty).Name
@@ -65,6 +66,35 @@ namespace JsonGen
                     continue;
                 }
                 
+                if (typeof(ISingleRowDataProvider).IsAssignableFrom(dataProviderType))
+                {
+                    if (dataToken is JValue)
+                    {
+                        dynamic singleRowData = await GetSingleRowData(predicate, filters, dataProviderType, dataSource);
+
+                        var newRow = (singleRowData is List<object> singleRowAsList) ? // Dapper would return a List<object> with 1 element
+                            JObject.FromObject(singleRowAsList[0]) : 
+                            JObject.FromObject(singleRowData);
+
+                        foreach (JToken node in dataToken.Parent.Parent.Children().OfType<JProperty>())
+                        {
+                            if (node is JProperty jProperty)
+                            {
+                                var value = newRow.GetValue(jProperty.Name);
+                                if (value != null)
+                                {
+                                    jProperty.Value = value;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        throw new GenerateException("SingleRowDataProvider needs a value.");
+                    }
+                }
+
                 if (typeof(IScalarDataProvider).IsAssignableFrom(dataProviderType))
                 {
                     if (dataToken is JValue)
@@ -231,6 +261,47 @@ namespace JsonGen
                 var dataProvider = (IScalarDataProvider)Activator.CreateInstance(dataProviderType);
 
                 data = await dataProvider.GetScalarDataAsync();
+            }
+
+            return data;
+        }
+
+        private async Task<dynamic> GetSingleRowData(Func<dynamic, bool> predicate, Filter[] filters,
+            Type dataProviderType, DataSource dataSource)
+        {
+            dynamic data = null;
+
+            if (typeof(IDbDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dbDataProvider = (IDbDataProvider)Activator.CreateInstance(dataProviderType);
+                dbDataProvider.DbConnection = dataSource.DbConnection;
+                dbDataProvider.Query = ReplaceMacrosInQuery(dataSource.Query, filters);
+                if (dataSource.Options?.ReplaceMacrosOnly == true)
+                {
+                    filters = new Filter[] { };
+                }
+
+                if (filters != null)
+                {
+                    data = await dbDataProvider.GetDataAsync(filters);
+                }
+                else
+                {
+                    data = await dbDataProvider.GetDataAsync(predicate);
+                }
+            }
+            else if (predicate != null && typeof(IFilterableDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var filterableDataProvider =
+                    (IFilterableDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await filterableDataProvider.GetDataAsync(predicate);
+            }
+            else if (typeof(ISingleRowDataProvider).IsAssignableFrom(dataProviderType))
+            {
+                var dataProvider = (ISingleRowDataProvider)Activator.CreateInstance(dataProviderType);
+
+                data = await dataProvider.GetSingleRowDataAsync(filters);
             }
 
             return data;
