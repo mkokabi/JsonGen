@@ -258,6 +258,50 @@ The ouput would be
 {'_dataSource': 'A', 'data': 2 }
 ```
 
+## SimpleRow data provider
+sometime the elements are not sitting in an array like:
+```json
+{'Id':1, 'Name': 'Mohsen'}
+```
+
+for these scenario the single row data provider could be used.
+```csharp
+Task<dynamic> GetSingleRowDataAsync(Filter[] filters);
+```
+
+Then the layout can be set as:
+```csharp
+public class SingleRowDataProvider : ISingleRowDataProvider
+{
+    public async Task<dynamic> GetSingleRowDataAsync(Filter[] filters) => await Task.FromResult(new Data
+    {
+        X = 1,
+        Y = 2,
+        Z = 3
+    });
+}
+
+var layout = @"{
+'root': {
+    'node': {
+        '_dataSource': 'S',
+        'X': '',
+        'Y': '',
+        'Z': ''
+        }
+    }
+} ";
+var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+{
+    Layout = new JsonGen.Layout { Content = layout },
+    DataSources = new[] {
+        new DataSource { DataProviderFullName = typeof(SingleRowDataProvider).FullName,
+            Key = "S"
+        }
+    }
+});
+```
+
 ## replacing macros
 In scenarios where dynamic sql is neccessary to be used, the replacing keys should be specified in the [ ] and the filter options should be set to ***ReplaceMacrosOnly*** . The keys should be passed as normal filter and their value be replaced. 
 

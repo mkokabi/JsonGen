@@ -244,6 +244,32 @@ namespace JsonGen.Db.Tests
         }
 
         [Fact]
+        public async Task DbGenerator_should_return_signle_row_data_from_db()
+        {
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new Layout { Content = "{'_dataSource': 'A', 'Id': 0, 'Name': 'X' }" },
+                Labels = new Labels(),
+                DataSources = new[]
+                {
+                    new DataSource {
+                        Key = "A",
+                        DataProviderFullName = typeof(DbSingleRowDataProvider).FullName,
+                        DbConnection = new SqlConnection(connStr),
+                        Query = "Select top 1 * from TestTable",
+                    }
+                }
+            });
+
+            var generator = new Generator(metadataProvider);
+            var json = await generator.GenerateAsync("myMeta");
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected = JObject.Parse("{'_dataSource': 'A', 'Id': 1, 'Name': 'MK' }");
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
         public async Task DbGenerator_should_return_multiple_columns_data_from_db_in_single_row()
         {
             var metadataProvider = new BasicMetadataProvider(_ => new Metadata

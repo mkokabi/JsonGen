@@ -24,7 +24,7 @@ namespace JsonGen.Db
             { Operators.Bw, "Between" },
         };
 
-        private const string ExecRegex = @"^\s*Exec\s*";
+        protected const string ExecRegex = @"^\s*Exec\s*";
         public IDbConnection DbConnection { get => dbConnection; set => dbConnection = value; }
         public string Query
         {
@@ -38,7 +38,7 @@ namespace JsonGen.Db
             }
         }
 
-        private CommandType CommandType = CommandType.Text;
+        protected CommandType CommandType = CommandType.Text;
 
         public async Task<IEnumerable<dynamic>> GetDataAsync()
         {
@@ -154,7 +154,7 @@ namespace JsonGen.Db
             }
         }
 
-        private DynamicParameters AddFiltersAsParameters(Filter[] filters)
+        protected DynamicParameters AddFiltersAsParameters(Filter[] filters)
         {
             var ps = new DynamicParameters();
             filters.ToList().ForEach(f => ps.Add(f.FieldName, f.Value));

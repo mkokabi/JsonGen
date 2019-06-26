@@ -176,6 +176,16 @@ namespace JsonGenTestProject
             public async Task<dynamic> GetScalarDataAsync() => await Task.FromResult(1);           
         }
 
+        public class SingleRowDataProvider : ISingleRowDataProvider
+        {
+            public async Task<dynamic> GetSingleRowDataAsync(Filter[] filters) => await Task.FromResult(new Data
+            {
+                X = 1,
+                Y = 2,
+                Z = 3
+            });
+        }
+
         public class TScalarDataProvider : IScalarDataProvider
         {
             public Task<IEnumerable<dynamic>> GetDataAsync()
@@ -340,6 +350,38 @@ namespace JsonGenTestProject
             var actual = JObject.Parse(json);
             var expected = 
                 JObject.Parse("{'criteria':{'filters':{'_dataSource_A':'S', 'data_a':1, '_dataSource_B':'T', 'data_b':2  }}}");
+            actual.Should().BeEquivalentTo(expected);
+
+        }
+
+        [TestMethod]
+        public void Generator_should_replace_mulitple_nodes_with_mulitple_property()
+        {
+            var layout = @"{
+            'root': {
+                'node': {
+                    '_dataSource': 'S',
+                    'X': '',
+                    'Y': '',
+                    'Z': ''
+                    }
+                }
+            } ";
+            var metadataProvider = new BasicMetadataProvider(_ => new Metadata
+            {
+                Layout = new JsonGen.Layout { Content = layout },
+                DataSources = new[] {
+                    new DataSource { DataProviderFullName = typeof(SingleRowDataProvider).FullName,
+                        Key = "S"
+                    }
+                }
+            });
+            var generator = new Generator(metadataProvider);
+            var json = generator.Generate("MyMetadata", predicate: row => row.x > 2);
+            json.Should().NotBeNull();
+            var actual = JObject.Parse(json);
+            var expected =
+                JObject.Parse("{'root':{'node':{'_dataSource':'S', 'X':1, 'Y':2, 'Z':3  }}}");
             actual.Should().BeEquivalentTo(expected);
 
         }
