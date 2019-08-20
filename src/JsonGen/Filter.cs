@@ -24,5 +24,10 @@
         public Operators Operator { get; set; } = Operators.Eq;
 
         public dynamic Value { get; set; }
+
+        public override string ToString()
+        {
+            return $"{this.FieldName} {this.Operator} {this.Value}";
+        }
     }
 }

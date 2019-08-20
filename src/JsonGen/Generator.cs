@@ -217,7 +217,7 @@ namespace JsonGen
             {
                 return query;
             }
-            foreach (Match match in Regex.Matches(query, @"\[.*\]"))
+            foreach (Match match in Regex.Matches(query, @"\[.*?\]"))
             {
                 var matchTrimmed = match.Value.Trim("[]".ToCharArray());
                 var filter = filters
