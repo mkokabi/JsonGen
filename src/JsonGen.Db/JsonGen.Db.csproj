@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452;net462;net472</TargetFrameworks>
-    <Version>2.2.0</Version>
+    <Version>2.3.0</Version>
     <Description>An extension for JsonGen which get data from Db</Description>
     <Authors>Mohsen Kokabi</Authors>
-    <Copyright>Copyright ©  2018</Copyright>
+    <Copyright>Copyright ©  2019</Copyright>
+    <PackageProjectUrl>https://github.com/mkokabi/JsonGen</PackageProjectUrl>
+    <PackageIconUrl>https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/JSON_vector_logo.svg/160px-JSON_vector_logo.svg.png</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
